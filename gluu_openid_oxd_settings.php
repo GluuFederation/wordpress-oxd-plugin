@@ -1558,33 +1558,32 @@ function gluu_additional_profile_fields( $user ) {
 			'billing' => array(
 				'title' => 'Billing Address',
 				'fields' =>
-					array(
-						array('label' => 'First name', 'value' => get_user_meta($user->ID, 'billing_first_name', true)),
-						array('label' => 'Last name', 'value' => get_user_meta($user->ID, 'billing_last_name', true)),
-						array('label' => 'Company', 'value' => get_user_meta($user->ID, 'billing_company', true)),
-						array('label' => 'Address 1', 'value' => get_user_meta($user->ID, 'billing_address_1', true)),
-						array('label' => 'Address 2', 'value' => get_user_meta($user->ID, 'billing_address_2', true)),
-						array('label' => 'City', 'value' => get_user_meta($user->ID, 'billing_city', true)),
-						array('label' => 'Postcode', 'value' => get_user_meta($user->ID, 'billing_postcode', true)),
-						array('label' => 'Country', 'value' => get_user_meta($user->ID, 'billing_country', true)),
-						array('label' => 'State/County', 'value' => get_user_meta($user->ID, 'billing_state', true)),
-						array('label' => 'Telephone', 'description' => get_user_meta($user->ID, 'billing_phone', true)),
-						array('label' => 'Email', 'description' => get_user_meta($user->ID, 'billing_email', true))
+					array(array('label' => 'First name', 'name'=> 'billing_first_name', 'value' =>get_user_meta($user->ID, 'billing_first_name', true)),
+						array('label' => 'Last name', 'name'=> 'billing_last_name', 'value' => get_user_meta($user->ID, 'billing_last_name', true)),
+						array('label' => 'Company', 'name'=> 'billing_company','value' => get_user_meta($user->ID, 'billing_company', true)),
+						array('label' => 'Address 1', 'name'=> 'billing_address_1', 'value' => get_user_meta($user->ID, 'billing_address_1', true)),
+						array('label' => 'Address 2', 'name'=> 'billing_address_2', 'value' => get_user_meta($user->ID, 'billing_address_2', true)),
+						array('label' => 'City', 'name'=> 'billing_city', 'value' => get_user_meta($user->ID, 'billing_city', true)),
+						array('label' => 'Postcode', 'name'=> 'billing_postcode', 'value' => get_user_meta($user->ID, 'billing_postcode', true)),
+						array('label' => 'Country', 'name'=> 'billing_country', 'value' => get_user_meta($user->ID, 'billing_country', true)),
+						array('label' => 'State/County', 'name'=> 'billing_state', 'value' => get_user_meta($user->ID, 'billing_state', true)),
+						array('label' => 'Telephone', 'name'=> 'billing_phone', 'value' => get_user_meta($user->ID, 'billing_phone', true)),
+						array('label' => 'Email', 'name'=> 'billing_email', 'value' => get_user_meta($user->ID, 'billing_email', true))
 					)
 			),
 			'shipping' => array('title' => 'Shipping Address',
 				'fields' =>
-					array(array('label' => 'First name', 'value' => get_user_meta($user->ID, 'shipping_first_name', true)),
-						array('label' => 'Last name', 'value' => get_user_meta($user->ID, 'shipping_last_name', true)),
-						array('label' => 'Company', 'value' => get_user_meta($user->ID, 'shipping_company', true)),
-						array('label' => 'Address 1', 'value' => get_user_meta($user->ID, 'shipping_address_1', true)),
-						array('label' => 'Address 2', 'value' => get_user_meta($user->ID, 'shipping_address_2', true)),
-						array('label' => 'City', 'value' => get_user_meta($user->ID, 'shipping_city', true)),
-						array('label' => 'Postcode', 'value' => get_user_meta($user->ID, 'shipping_postcode', true)),
-						array('label' => 'Country', 'value' => get_user_meta($user->ID, 'shipping_country', true)),
-						array('label' => 'State/County', 'value' => get_user_meta($user->ID, 'shipping_state', true)),
-						array('label' => 'Telephone', 'description' => get_user_meta($user->ID, 'shipping_phone', true)),
-						array('label' => 'Email', 'description' => get_user_meta($user->ID, 'shipping_email', true))
+					array(array('label' => 'First name', 'name'=> 'shipping_first_name', 'value' =>get_user_meta($user->ID, 'shipping_first_name', true)),
+						array('label' => 'Last name', 'name'=> 'shipping_last_name', 'value' => get_user_meta($user->ID, 'shipping_last_name', true)),
+						array('label' => 'Company', 'name'=> 'shipping_company','value' => get_user_meta($user->ID, 'shipping_company', true)),
+						array('label' => 'Address 1', 'name'=> 'shipping_address_1', 'value' => get_user_meta($user->ID, 'shipping_address_1', true)),
+						array('label' => 'Address 2', 'name'=> 'shipping_address_2', 'value' => get_user_meta($user->ID, 'shipping_address_2', true)),
+						array('label' => 'City', 'name'=> 'shipping_city', 'value' => get_user_meta($user->ID, 'shipping_city', true)),
+						array('label' => 'Postcode', 'name'=> 'shipping_postcode', 'value' => get_user_meta($user->ID, 'shipping_postcode', true)),
+						array('label' => 'Country', 'name'=> 'shipping_country', 'value' => get_user_meta($user->ID, 'shipping_country', true)),
+						array('label' => 'State/County', 'name'=> 'shipping_state', 'value' => get_user_meta($user->ID, 'shipping_state', true)),
+						array('label' => 'Telephone', 'name'=> 'shipping_phone', 'value' => get_user_meta($user->ID, 'shipping_phone', true)),
+						array('label' => 'Email', 'name'=> 'shipping_email', 'value' => get_user_meta($user->ID, 'shipping_email', true))
 					)
 			)
 		);
@@ -1597,7 +1596,7 @@ function gluu_additional_profile_fields( $user ) {
 					<th><label for="<?php echo $fields['value']; ?>"><?php echo $fields['label']; ?></label>
 					</th>
 					<td>
-						<input type="text" name="<?php echo $fields['value']; ?>"
+						<input type="text" name="<?php echo $fields['name']; ?>"
 							   id="<?php echo $fields['value']; ?>" value="<?php echo $fields['value']; ?>"
 							   class="regular-text"/>
 						<br>
@@ -1616,7 +1615,7 @@ function gluu_additional_profile_fields( $user ) {
 					<th><label for="<?php echo $fields['value']; ?>"><?php echo $fields['label']; ?></label>
 					</th>
 					<td>
-						<input type="text" name="<?php echo $fields['value']; ?>"
+						<input type="text" name="<?php echo $fields['name']; ?>"
 							   id="<?php echo $fields['value']; ?>" value="<?php echo $fields['value']; ?>"
 							   class="regular-text"/>
 						<br>
@@ -1637,17 +1636,8 @@ add_action( 'edit_user_profile', 'gluu_additional_profile_fields' );
 
 
 function gluu_save_profile_fields( $user_id ) {
-
 	if ( ! current_user_can( 'edit_user', $user_id ) ) {
 		return false;
-	}
-	$json = file_get_contents(get_option('gluu_op_host') . '/.well-known/openid-configuration');
-	$obj = json_decode($json);
-	foreach ($obj->claims_supported as $claims_supported){
-		if ( empty( $_POST[$claims_supported] ) and isset($_POST[$claims_supported])) {
-			return false;
-		}
-		update_user_meta( $user_id, $claims_supported, $_POST[$claims_supported] );
 	}
 	if (!class_exists('WooCommerce')) {
 
@@ -1674,6 +1664,15 @@ function gluu_save_profile_fields( $user_id ) {
 		update_user_meta($user_id, 'shipping_state', $_POST['shipping_state']);
 		update_user_meta($user_id, 'shipping_phone', $_POST['shipping_phone']);
 		update_user_meta($user_id, 'shipping_email', $_POST['shipping_email']);
+	}
+
+	$json = file_get_contents(get_option('gluu_op_host') . '/.well-known/openid-configuration');
+	$obj = json_decode($json);
+	foreach ($obj->claims_supported as $claims_supported){
+		if ( empty( $_POST[$claims_supported] ) and isset($_POST[$claims_supported])) {
+			return false;
+		}
+		update_user_meta( $user_id, $claims_supported, $_POST[$claims_supported] );
 	}
 }
 
