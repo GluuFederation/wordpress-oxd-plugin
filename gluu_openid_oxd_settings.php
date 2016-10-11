@@ -82,6 +82,10 @@ class gluu_OpenID_OXD {
 		add_option('gluu_oxd_openid_custom_scripts',array('none'));
 	}
 	function gluu_oxd_openid_deactivate() {
+		unset($_SESSION['openid_success_reg']);
+		unset($_SESSION['openid_error']);
+		unset($_SESSION['openid_edit_success']);
+		unset($_SESSION['openid_error_edit']);
 		delete_option('gluu_oxd_config');
 		delete_option('gluu_oxd_id');
 		delete_option('gluu_oxd_openid_new_registration');
@@ -178,51 +182,58 @@ class gluu_OpenID_OXD {
 							$this->gluu_oxd_openid_show_error_message();
 							return;
 						}
-						if ($this->gluu_oxd_openid_check_empty_or_null($_POST['oxd_host_port'])) {
-							update_option('gluu_oxd_openid_message', 'All the fields are required. Please enter valid entries.');
-							$this->gluu_oxd_openid_show_error_message();
-							return;
-						}
-						else if (!$_POST['users_can_register']) {
-							update_option('gluu_oxd_openid_message', 'Need to choose "Automatically register new users" checkbox.');
-							$this->gluu_oxd_openid_show_error_message();
-							return;
-						}
-						else if (intval($_POST['oxd_host_port']) > 65535 && intval($_POST['oxd_host_port']) < 0) {
 
-							update_option('gluu_oxd_openid_message', 'Enter your oxd host port (Min. number 0, Max. number 65535)');
-							$this->gluu_oxd_openid_show_error_message();
-							return;
+						if ($_POST['users_can_register']==1) {
+							update_option('users_can_register', sanitize_text_field($_POST['users_can_register']));
+						}else{
+							update_option('users_can_register', 0);
 						}
-						else if  (!empty($_POST['gluu_server_url'])) {
+						if  (!empty($_POST['gluu_server_url'])) {
 							if (filter_var(sanitize_text_field($_POST['gluu_server_url']), FILTER_VALIDATE_URL) === false) {
 								update_option('gluu_oxd_openid_message', 'Please enter valid URL.');
 								$this->gluu_oxd_openid_show_error_message();
 								return;
+								exit;
 							}
 						}
-						else if  (!empty($_POST['gluu_custom_url'])) {
+						if  (!empty($_POST['gluu_custom_url'])) {
 							if (filter_var(sanitize_text_field($_POST['gluu_custom_url']), FILTER_VALIDATE_URL) === false) {
 								update_option('gluu_oxd_openid_message', 'Please enter valid custom URI.');
 								$this->gluu_oxd_openid_show_error_message();
 								return;
+								exit;
 							}
 						}
+
 						if (isset($_POST['gluu_server_url']) and !empty($_POST['gluu_server_url'])) {
-							update_option('gluu_server_url', sanitize_text_field($_POST['gluu_server_url']));
+							update_option('gluu_op_host', sanitize_text_field($_POST['gluu_server_url']));
 						}
+						if (isset($_POST['gluu_custom_url']) and !empty($_POST['gluu_custom_url'])) {
+							update_option('gluu_custom_url', sanitize_text_field($_POST['gluu_custom_url']));
+						}else{
+							update_option('gluu_custom_url', '');
+						}
+						$config_option = get_option('gluu_oxd_config');
+						$config_option['oxd_host_port'] = intval($_POST['oxd_host_port']);
 						$oxd_host_port = intval($_POST['oxd_host_port']);
-						if (empty($_POST['users_can_register']) || !empty($_POST['users_can_register']) && trim($_POST['default_role']) != 1) {
-							update_option('gluu_oxd_openid_message', '<strong>ERROR</strong>: Signup has been disabled. Only members of this site can comment.');
-						}
-						else {
-							update_option('users_can_register', sanitize_text_field($_POST['users_can_register']));
-						}
+						update_option('gluu_oxd_config', $config_option);
+
+
 						if (empty($_POST['default_role']) || !empty($_POST['default_role']) && trim($_POST['default_role']) == '') {
+							$this->gluu_oxd_openid_show_error_message();
 							update_option('gluu_oxd_openid_message', '<strong>ERROR</strong>: You must include a role.');
+							return;
 						}
 						else {
 							update_option('default_role', wp_unslash($_POST['default_role']));
+						}
+						if (isset($_POST['gluu_server_url']) and !empty($_POST['gluu_server_url'])) {
+							update_option('gluu_op_host', sanitize_text_field($_POST['gluu_server_url']));
+						}
+						if(!gluu_is_port_working()){
+							update_option('gluu_oxd_openid_message', 'Can not connect to the oxd server. Please check the oxd-config.json file to make sure you have entered the correct port and the oxd server is operational.');
+							$this->gluu_oxd_openid_show_error_message();
+							return;
 						}
 						if (isset($_POST['gluu_server_url']) and !empty($_POST['gluu_server_url'])) {
 							$json = file_get_contents(sanitize_text_field($_POST['gluu_server_url']).'/.well-known/openid-configuration');
@@ -231,10 +242,7 @@ class gluu_OpenID_OXD {
 								if(empty($obj->registration_endpoint)){
 									update_option('gluu_oxd_openid_message', "Please enter your client_id and client_secret.");
 									update_option('gluu_redirect_url', site_url()."/index.php?option=oxdOpenId");
-									$config_option = get_option('gluu_oxd_config');
-									$config_option['oxd_host_port'] = $oxd_host_port;
-									update_option('gluu_oxd_config', $config_option);
-									update_option('gluu_op_host', sanitize_text_field($_POST['gluu_server_url']));
+
 									if(isset($_POST['gluu_client_id']) and !empty(sanitize_text_field($_POST['gluu_client_id'])) and
 										isset($_POST['gluu_client_secret']) and !empty(sanitize_text_field($_POST['gluu_client_secret']))){
 										$config_option = array(
@@ -469,13 +477,8 @@ class gluu_OpenID_OXD {
 						}
 					}
 					else if (isset($_POST['option']) and $_POST['option'] == "oxd_openid_edit_config") {
-						$config_option['gluu_client_id'] = '';
-						$config_option['gluu_client_secret'] = '';
-						update_option('gluu_oxd_id', '');
-						if(!empty($_POST['gluu_server_url'])){
-							update_option('gluu_op_host', sanitize_text_field($_POST['gluu_server_url']));
-						}
-						else if  (!empty($_POST['gluu_custom_url'])) {
+
+						if  (!empty($_POST['gluu_custom_url'])) {
 							if (filter_var(sanitize_text_field($_POST['gluu_custom_url']), FILTER_VALIDATE_URL) === false) {
 								update_option('gluu_oxd_openid_message', 'Please enter valid custom URI.');
 								$this->gluu_oxd_openid_show_error_message();
@@ -484,44 +487,21 @@ class gluu_OpenID_OXD {
 						}
 						if (isset($_POST['gluu_custom_url']) and !empty($_POST['gluu_custom_url'])) {
 							update_option('gluu_custom_url', sanitize_text_field($_POST['gluu_custom_url']));
+						}else{
+							update_option('gluu_custom_url', '');
 						}
-						update_option('gluu_oxd_openid_scops',array("openid", "profile","email"));
-						update_option('gluu_oxd_openid_custom_scripts',array('none'));
-						update_option('gluu_oxd_config', $config_option);
+
 						if(!isset($_SERVER['HTTPS']) or $_SERVER['HTTPS'] != "on") {
 							update_option('gluu_oxd_openid_message', 'OpenID Connect requires https. This plugin will not work if your website uses http only.');
 							$this->gluu_oxd_openid_show_error_message();
 							return;
 						}
-						if ($this->gluu_oxd_openid_check_empty_or_null($_POST['oxd_host_port'])) {
-							update_option('gluu_oxd_openid_message', 'All the fields are required. Please enter valid entries.');
-							$this->gluu_oxd_openid_show_error_message();
-							return;
-						}
-						else if (!$_POST['users_can_register']) {
-							update_option('gluu_oxd_openid_message', 'Need to choose "Automatically register new users" checkbox.');
-							$this->gluu_oxd_openid_show_error_message();
-							return;
-						}
-						else if (intval($_POST['oxd_host_port']) > 65535 && intval($_POST['oxd_host_port']) < 0) {
 
-							update_option('gluu_oxd_openid_message', 'Enter your oxd host port (Min. number 0, Max. number 65535)');
-							$this->gluu_oxd_openid_show_error_message();
-							return;
+						if ($_POST['users_can_register']==1) {
+							update_option('users_can_register', sanitize_text_field($_POST['users_can_register']));
+						}else{
+							update_option('users_can_register', 0);
 						}
-
-						$oxd_host_port = intval($_POST['oxd_host_port']);
-						$config_option = array(
-							"oxd_host_port" => intval($_POST['oxd_host_port']),
-							"authorization_redirect_uri" => site_url() . '/index.php?option=oxdOpenId',
-							"logout_redirect_uri" => site_url() . '/index.php?option=allLogout',
-							"scope" => ["openid", "profile","email"],
-							"application_type" => "web",
-							"response_types" => ["code"],
-							"grant_types" => ["authorization_code"],
-							"acr_values" => []
-						);
-						update_option('gluu_oxd_config', $config_option);
 						if (empty($_POST['users_can_register']) || !empty($_POST['users_can_register']) && trim($_POST['default_role']) != 1) {
 							update_option('gluu_oxd_openid_message', '<strong>ERROR</strong>: Signup has been disabled. Only members of this site can comment.');
 						} else {
@@ -532,7 +512,36 @@ class gluu_OpenID_OXD {
 						} else {
 							update_option('default_role', wp_unslash($_POST['default_role']));
 						}
-
+						$config_option = get_option('gluu_oxd_config');
+						$config_option['oxd_host_port'] = intval($_POST['oxd_host_port']);
+						$oxd_host_port = intval($_POST['oxd_host_port']);
+						update_option('gluu_oxd_config', $config_option);
+						if(!gluu_is_port_working()){
+							update_option('gluu_oxd_id', '');
+							update_option('gluu_oxd_openid_message', 'Can not connect to the oxd server. Please check the oxd-config.json file to make sure you have entered the correct port and the oxd server is operational.');
+							$this->gluu_oxd_openid_show_error_message();
+							return;
+						}else{
+							update_option('gluu_oxd_openid_scops',array("openid", "profile","email"));
+							update_option('gluu_oxd_openid_custom_scripts',array('none'));
+							$config_option = get_option('gluu_oxd_config');
+							$config_option['gluu_client_id'] = '';
+							$config_option['gluu_client_secret'] = '';
+							update_option('gluu_oxd_config', $config_option);
+							update_option('gluu_oxd_id', '');
+							$oxd_host_port = intval($_POST['oxd_host_port']);
+							$config_option = array(
+								"oxd_host_port" => intval($_POST['oxd_host_port']),
+								"authorization_redirect_uri" => site_url() . '/index.php?option=oxdOpenId',
+								"logout_redirect_uri" => site_url() . '/index.php?option=allLogout',
+								"scope" => ["openid", "profile","email"],
+								"application_type" => "web",
+								"response_types" => ["code"],
+								"grant_types" => ["authorization_code"],
+								"acr_values" => []
+							);
+							update_option('gluu_oxd_config', $config_option);
+						}
 						if (!empty(get_option('gluu_op_host'))) {
 							$json = file_get_contents(get_option('gluu_op_host').'/.well-known/openid-configuration');
 							$obj = json_decode($json);
@@ -723,23 +732,29 @@ class gluu_OpenID_OXD {
 						if (gluu_is_oxd_registered()) {
 							if(sanitize_text_field($_POST['send_user_type'])){
 								update_option('gluu_auth_type', sanitize_text_field($_POST['send_user_type']));
-							}else{
+							}
+							else{
 								update_option('gluu_auth_type', 'default');
 							}
-							update_option('gluu_send_user_check', sanitize_text_field($_POST['send_user_check']));
-							$error = true;
+							if(sanitize_text_field($_POST['send_user_check'])){
+								update_option('gluu_send_user_check', sanitize_text_field($_POST['send_user_check']));
+							}
+							else{
+								update_option('gluu_send_user_check', 0);
+							}
 							$error_array = array();
+							$error_array1 = array();
 							$oxd_config = !empty(get_option('gluu_oxd_config')) ? get_option('gluu_oxd_config') : array();
-							$oxd_config['response_types'] = !empty($_POST['response_types']) && isset($_POST['response_types']) ? sanitize_text_field($_POST['response_types']) : $oxd_config['response_types'];
 							$oxd_config['scope'] = !empty($_POST['scope']) && isset($_POST['scope']) ? array_map( 'sanitize_text_field', wp_unslash($_POST['scope'])) : $oxd_config['scope'];
 							update_option('gluu_oxd_config', $oxd_config);
-
 							if (!empty($_POST['new_scope']) && isset($_POST['new_scope'])) {
 								foreach (array_map( 'sanitize_text_field', wp_unslash($_POST['new_scope'])) as $scope) {
-									if ($scope) {
+									if (!in_array($scope, get_option('gluu_oxd_openid_scops')) and $scope) {
 										$get_scopes = get_option('gluu_oxd_openid_scops');
 										array_push($get_scopes, $scope);
 										update_option('gluu_oxd_openid_scops', $get_scopes);
+									}elseif($scope != ''){
+										$error_array1[] = 'Scope value = ' . $scope . ' is exist.<br/>';
 									}
 								}
 							}
@@ -783,82 +798,86 @@ class gluu_OpenID_OXD {
 									exit;
 								}
 							}
-							if (isset($_POST['count_scripts'])) {
-								for ($i = 1; $i <= intval($_POST['count_scripts']); $i++) {
-									if ( isset($_POST['new_custom_script_value_' . $i]) && !empty($_POST['new_custom_script_value_' . $i])) {
-										$custom_scripts = get_option('gluu_oxd_openid_custom_scripts');
-										foreach ($custom_scripts as $custom_script) {
-											if ($custom_script == sanitize_text_field($_POST['new_custom_script_value_' . $i])) {
-												$error = false;
-												array_push($error_array, $i);
-											}
-										}
-										if ($error) {
-											array_push($custom_scripts, sanitize_text_field($_POST['new_custom_script_value_' . $i]));
-											update_option('gluu_oxd_openid_custom_scripts', $custom_scripts);
-										} else {
-											update_option('gluu_oxd_openid_message', 'ACR Value = ' . sanitize_text_field($_POST['new_custom_script_value_' . $i]) . ' is exist.');
-											$this->gluu_oxd_openid_show_error_message();
-										}
+							if ( isset($_POST['acr_value']) && !empty($_POST['acr_value'])) {
+								foreach (array_map( 'sanitize_text_field', wp_unslash($_POST['acr_value'])) as $custom_script) {
+									if (!in_array($custom_script, get_option('gluu_oxd_openid_custom_scripts')) and $custom_script) {
+										$acr_value = get_option('gluu_oxd_openid_custom_scripts');
+										array_push($acr_value, $custom_script);
+										update_option('gluu_oxd_openid_custom_scripts', $acr_value);
+									}elseif($custom_script != ''){
+										$error_array[] = 'Acr value = ' . $custom_script . ' is exist.<br/>';
 									}
 								}
 							}
-							if (!$error) {
-								$error_message = '';
-								foreach ($error_array as $error_a) {
-									$error_message .= 'ACR Value = ' . sanitize_text_field($_POST['new_custom_script_value_' . $error_a]) . ' is exist.<br/>';
+							$error_message = '';
+							if (!empty($error_array1)) {
+								foreach ($error_array1 as $error_a) {
+									$error_message .= $error_a;
 								}
+							}
+							if (!empty($error_array)) {
+								foreach ($error_array as $error_a) {
+									$error_message .= $error_a;
+								}
+							}
+							if(!empty($error_message)){
 								update_option('gluu_oxd_openid_message', $error_message);
 								$this->gluu_oxd_openid_show_error_message();
-							} else {
-								$config_option = get_option( 'gluu_oxd_config');
-								$json = file_get_contents(get_option('gluu_op_host').'/.well-known/openid-configuration');
-								$obj = json_decode($json);
-								if(!empty($obj->registration_endpoint)) {
-									$update_site_registration = new UpdateSiteRegistration();
-									$update_site_registration->setRequestOxdId(get_option('gluu_oxd_id'));
-									$update_site_registration->setRequestAcrValues($config_option['acr_values']);
-									$update_site_registration->setRequestAuthorizationRedirectUri($config_option['authorization_redirect_uri']);
-									$update_site_registration->setRequestGrantTypes($config_option['grant_types']);
-									$update_site_registration->setRequestResponseTypes(['code']);
-									$update_site_registration->setRequestLogoutRedirectUri($config_option['logout_redirect_uri']);
-									$update_site_registration->setRequestContacts([$current_user->user_email]);
-									$update_site_registration->setRequestApplicationType('web');
-									$update_site_registration->setRequestClientLogoutUri($config_option['logout_redirect_uri']);
-									$update_site_registration->setRequestScope($config_option['scope']);
-									$status = $update_site_registration->request();
-									if ($status['message'] == 'invalid_op_host') {
-										update_option('gluu_oxd_openid_message', 'ERROR: OpenID Provider host is required if you don\'t provide it in oxd-default-site-config.json');
-										$this->gluu_oxd_openid_show_error_message();
-										return;
-									}
-									if (!$status['status']) {
-										update_option('gluu_oxd_openid_message', 'Can not connect to the oxd server. Please check the oxd-config.json file to make sure you have entered the correct port and the oxd server is operational.');
-										$this->gluu_oxd_openid_show_error_message();
-										return;
-									}
-									if ($status['message'] == 'internal_error') {
-										update_option('gluu_oxd_openid_message', 'ERROR: '.$status['error_message']);
-										$this->gluu_oxd_openid_show_error_message();
-										return;
-									}
-									if($update_site_registration->getResponseOxdId()){
-										if(get_option('gluu_oxd_id')){
-											update_option( 'gluu_oxd_id', $update_site_registration->getResponseOxdId() );
-										}else{
-											add_option( 'gluu_oxd_id', $update_site_registration->getResponseOxdId() );
-										}
-										$this->gluu_oxd_openid_show_success_message();
-									}else{
-										update_option( 'gluu_oxd_openid_message', 'ERROR: OpenID Provider host is required if you don\'t provide it in oxd-default-site-config.json');
-										$this->gluu_oxd_openid_show_error_message();
-									}
-									update_option( 'gluu_oxd_id', $update_site_registration->getResponseOxdId() );
-								}
-								update_option( 'gluu_oxd_openid_message', 'Your settings are saved successfully.' );
-								$_SESSION['openid_success_reg'] = 'success.';
-								$this->gluu_oxd_openid_show_success_message();
 							}
+							$config_option = get_option( 'gluu_oxd_config');
+							if(!gluu_is_port_working()){
+								update_option('gluu_oxd_openid_message', 'Can not connect to the oxd server. Please check the oxd-config.json file to make sure you have entered the correct port and the oxd server is operational.');
+								$this->gluu_oxd_openid_show_error_message();
+								return;
+							}
+							$json = file_get_contents(get_option('gluu_op_host').'/.well-known/openid-configuration');
+							$obj = json_decode($json);
+							if(!empty($obj->registration_endpoint)) {
+								$update_site_registration = new UpdateSiteRegistration();
+								$update_site_registration->setRequestOxdId(get_option('gluu_oxd_id'));
+								$update_site_registration->setRequestAcrValues($config_option['acr_values']);
+								$update_site_registration->setRequestAuthorizationRedirectUri($config_option['authorization_redirect_uri']);
+								$update_site_registration->setRequestGrantTypes($config_option['grant_types']);
+								$update_site_registration->setRequestResponseTypes(['code']);
+								$update_site_registration->setRequestLogoutRedirectUri($config_option['logout_redirect_uri']);
+								$update_site_registration->setRequestContacts([$current_user->user_email]);
+								$update_site_registration->setRequestApplicationType('web');
+								$update_site_registration->setRequestClientLogoutUri($config_option['logout_redirect_uri']);
+								$update_site_registration->setRequestClientId($config_option['gluu_client_id']);
+								$update_site_registration->setRequestClientSecret($config_option['gluu_client_secret']);
+								$update_site_registration->setRequestScope($config_option['scope']);
+								$status = $update_site_registration->request();
+								if ($status['message'] == 'invalid_op_host') {
+									update_option('gluu_oxd_openid_message', 'ERROR: OpenID Provider host is required if you don\'t provide it in oxd-default-site-config.json');
+									$this->gluu_oxd_openid_show_error_message();
+									return;
+								}
+								if (!$status['status']) {
+									update_option('gluu_oxd_openid_message', 'Can not connect to the oxd server. Please check the oxd-config.json file to make sure you have entered the correct port and the oxd server is operational.');
+									$this->gluu_oxd_openid_show_error_message();
+									return;
+								}
+								if ($status['message'] == 'internal_error') {
+									update_option('gluu_oxd_openid_message', 'ERROR: '.$status['error_message']);
+									$this->gluu_oxd_openid_show_error_message();
+									return;
+								}
+								if($update_site_registration->getResponseOxdId()){
+									if(get_option('gluu_oxd_id')){
+										update_option( 'gluu_oxd_id', $update_site_registration->getResponseOxdId() );
+									}else{
+										add_option( 'gluu_oxd_id', $update_site_registration->getResponseOxdId() );
+									}
+									$this->gluu_oxd_openid_show_success_message();
+								}else{
+									update_option( 'gluu_oxd_openid_message', 'ERROR: OpenID Provider host is required if you don\'t provide it in oxd-default-site-config.json');
+									$this->gluu_oxd_openid_show_error_message();
+								}
+								update_option( 'gluu_oxd_id', $update_site_registration->getResponseOxdId() );
+							}
+							update_option( 'gluu_oxd_openid_message', 'Your settings are saved successfully.' );
+							$_SESSION['openid_success_reg'] = 'success.';
+							$this->gluu_oxd_openid_show_success_message();
 						} else {
 							update_option('gluu_oxd_openid_message', 'Please register an account before trying to enable any app');
 							$this->gluu_oxd_openid_show_error_message();
@@ -917,7 +936,6 @@ class gluu_OpenID_OXD {
 	}
 	// And here goes the uninstallation function:
 	function gluu_oxd_openid_uninstall(){
-		//delete all stored key-value pairs
 		delete_option('gluu_oxd_config');
 		delete_option('gluu_oxd_id');
 		delete_option('gluu_oxd_openid_new_registration');
@@ -938,29 +956,33 @@ class gluu_OpenID_OXD {
 		$json = file_get_contents(get_option('gluu_op_host').'/.well-known/openid-configuration');
 		$obj = json_decode($json);
 		if(time()<(int)$_SESSION['session_in_op']){
-			if(!empty($obj->end_session_endpoint)){
+			if(!empty($obj->end_session_endpoint) or get_option('gluu_op_host') == 'https://accounts.google.com'){
 				if(!empty($_SESSION['user_oxd_id_token'])){
-					if(get_option('gluu_oxd_id') && $_SESSION['user_oxd_id_token'] && $_SESSION['session_in_op']){
-						$logout = new Logout();
-						$logout->setRequestOxdId(get_option('gluu_oxd_id'));
-						$logout->setRequestIdToken($_SESSION['user_oxd_id_token']);
-						$logout->setRequestPostLogoutRedirectUri($config_option['logout_redirect_uri']);
-						$logout->setRequestSessionState($_SESSION['session_states']);
-						$logout->setRequestState($_SESSION['states']);
-						$logout->request();
-						unset($_SESSION['user_oxd_access_token']);
-						unset($_SESSION['user_oxd_id_token']);
-						unset($_SESSION['session_states']);
-						unset($_SESSION['states']);
-						unset($_SESSION['session_in_op']);
-						wp_redirect( $logout->getResponseObject()->data->uri );
-						exit;
+					if(gluu_is_port_working()){
+						if(get_option('gluu_oxd_id') && $_SESSION['user_oxd_id_token'] && $_SESSION['session_in_op']){
+							$logout = new Logout();
+							$logout->setRequestOxdId(get_option('gluu_oxd_id'));
+							$logout->setRequestIdToken($_SESSION['user_oxd_id_token']);
+							$logout->setRequestPostLogoutRedirectUri($config_option['logout_redirect_uri']);
+							$logout->setRequestSessionState($_SESSION['session_states']);
+							$logout->setRequestState($_SESSION['states']);
+							$logout->request();
+							unset($_SESSION['user_oxd_access_token']);
+							unset($_SESSION['user_oxd_id_token']);
+							unset($_SESSION['session_states']);
+							unset($_SESSION['states']);
+							unset($_SESSION['session_in_op']);
+							if($logout->getResponseObject()->data->uri){
+								wp_redirect( $logout->getResponseObject()->data->uri );
+							}
+							exit;
 
+						}
 					}
-
 				}
 			}
-		}else{
+		}
+		else{
 			unset($_SESSION['user_oxd_access_token']);
 			unset($_SESSION['user_oxd_id_token']);
 			unset($_SESSION['session_states']);
@@ -972,7 +994,21 @@ class gluu_OpenID_OXD {
 	}
 }
 new gluu_OpenID_OXD;
+function gluu_is_port_working(){
+	$config_option = get_option('gluu_oxd_config');
+	$connection = @fsockopen('127.0.0.1', $config_option['oxd_host_port']);
 
+	if (is_resource($connection))
+	{
+		fclose($connection);
+		return true;
+	}
+
+	else
+	{
+		return false;
+	}
+}
 function gluu_oxd_openid_get_redirect_url() {
 	$option = get_option( 'gluu_oxd_openid_login_redirect' );
 	$redirect_url = site_url();
@@ -983,7 +1019,7 @@ function gluu_oxd_openid_get_redirect_url() {
 			$http =  "http://";
 		}
 		$redirect_url = urldecode(html_entity_decode(esc_url($http . $_SERVER["HTTP_HOST"] . str_replace('option=oxdOpenId','',$_SERVER['REQUEST_URI']))));
-		if(html_entity_decode(esc_url(remove_query_arg('ss_message', $redirect_url))) == wp_login_url() || strpos($_SERVER['REQUEST_URI'],'wp-login.php') !== FALSE || strpos($_SERVER['REQUEST_URI'],'wp-admin') !== FALSE){
+		if(html_entity_decode(esc_url(remove_query_arg('ss_message', $redirect_url))) == wp_login_url() || strpos($_SERVER['REQUEST_URI'],'wp-login.php') !== FALSE){
 			$redirect_url = site_url().'/';
 		}
 	} else if( $option == 'homepage' ) {
@@ -1034,7 +1070,9 @@ function gluu_my_login_redirect($prompt = null  ) {
 	}else{
 		$get_authorization_url->setRequestAcrValues(null);
 	}
-
+	/*if(get_option('gluu_op_host') == 'https://accounts.google.com'){
+		$get_authorization_url->setRequestHD(site_url().'/index.php?option=allLogout');
+	}*/
 
 	if(!empty($prompt)){
 		$get_authorization_url->setRequestPrompt($prompt);
@@ -1052,32 +1090,57 @@ function gluu_oxd_openid_logout_validate()
 			wp_destroy_current_session();
 			wp_clear_auth_cookie();
 			wp_logout();
+			do_action( 'wp_logout' );
+			if(get_option('gluu_custom_url')){
+				wp_redirect(get_option('gluu_custom_url'));exit;
+			}else{
+				wp_redirect(site_url());exit;
+			}
+		}else{
+			if(get_option('gluu_custom_url')){
+				wp_redirect(get_option('gluu_custom_url'));exit;
+			}else{
+				wp_redirect(site_url());exit;
+			}
 		}
 
 	}else if (isset($_REQUEST['option']) and strpos($_REQUEST['option'], 'allLogout') !== false ) {
-
-		wp_redirect(get_option('gluu_custom_url'));exit;
+		if(get_option('gluu_custom_url')){
+			wp_redirect(get_option('gluu_custom_url'));
+			exit;
+		}else{
+			wp_redirect(site_url());
+			exit;
+		}
+	}else if(isset($_REQUEST['loggedout']) and strpos($_REQUEST['loggedout'], 'true') !== false){
+		if(get_option('gluu_custom_url')){
+			wp_redirect(get_option('gluu_custom_url'));exit;
+		}else{
+			wp_redirect(site_url());exit;
+		}
 	}
 }
 function gluu_oxd_openid_login_validate(){
 	if(isset( $_REQUEST['option'] ) and strpos( $_REQUEST['option'], 'oxdOpenId' ) !== false ){
+		if(!gluu_is_port_working()){
+			echo "<script>
+					alert('Problem with connection to OpenID Provider, please contact the system administrator.');
+					location.href='".site_url()."';
+				 </script>";
+			exit;
+		}
 		if(isset( $_REQUEST['error'] ) and strpos( $_REQUEST['error'], 'session_selection_required' ) !== false ){
 			wp_redirect( gluu_my_login_redirect('login') );
 			exit;
 		}
+
 		session_start();
-		$http = isset($_SERVER['HTTPS']) && !empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off' ? "https://" : "http://";
-		$parts = parse_url($http . $_SERVER["HTTP_HOST"] . $_SERVER["REQUEST_URI"]);
-		parse_str($parts['query'], $query);
-		$config_option = get_option( 'gluu_oxd_config' );
-		$conf = get_option('gluu_oxd_config');
-		//var_dump($_REQUEST);exit;
 		$get_tokens_by_code = new GetTokensByCode();
 		$get_tokens_by_code->setRequestOxdId(get_option('gluu_oxd_id'));
 		$get_tokens_by_code->setRequestCode($_REQUEST['code']);
 		$get_tokens_by_code->setRequestState($_REQUEST['state']);
 		$get_tokens_by_code->request();
-		$get_tokens_by_code_array = $get_tokens_by_code->getResponseObject();
+		$get_tokens_by_code_array = $get_tokens_by_code->getResponseObject()->data;
 		$_SESSION['session_in_op']= $get_tokens_by_code->getResponseIdTokenClaims()->exp[0];
 		$_SESSION['user_oxd_id_token']= $get_tokens_by_code->getResponseIdToken();
 		$_SESSION['user_oxd_access_token']= $get_tokens_by_code->getResponseAccessToken();
@@ -1088,27 +1151,31 @@ function gluu_oxd_openid_login_validate(){
 		$get_user_info->setRequestAccessToken($_SESSION['user_oxd_access_token']);
 		$get_user_info->request();
 		$get_user_info_array = $get_user_info->getResponseObject()->data->claims;
-		/*echo '<pre>';
-		echo($get_user_info_array->user_name[0]);exit;*/
-		$reg_first_name = '';
-		$reg_user_name = '';
-		$reg_last_name = '';
 		$reg_email = '';
+		if($get_user_info_array->email[0]){
+			$reg_email = $get_user_info_array->email[0];
+		}elseif($get_tokens_by_code_array->email[0]){
+			$reg_email = $get_tokens_by_code_array->email[0];
+		}
+		if( !$reg_email ) {
+			echo "<script>
+					alert('Missing claim : (email). Please talk to your organizational system administrator.');
+					location.href='".site_url()."';
+				 </script>";
+			exit;
+		}
+		$reg_first_name = '';
+		$reg_last_name = '';
 		$reg_avatar = '';
 		$reg_display_name = '';
 		$reg_nikname = '';
 		$reg_website = '';
-		$reg_middle_name = '';
 		$reg_country = '';
 		$reg_city = '';
-		$reg_region = '';
-		$reg_gender = '';
 		$reg_postal_code = '';
-		$reg_fax = '';
 		$reg_home_phone_number = '';
-		$reg_phone_mobile_number = '';
 		$reg_street_address = '';
-		$reg_birthdate = '';
+		$reg_street_address_2 = '';
 		if($get_user_info_array->website[0]){
 			$reg_website = $get_user_info_array->website[0];
 		}elseif($get_tokens_by_code_array->website[0]){
@@ -1134,34 +1201,10 @@ function gluu_oxd_openid_login_validate(){
 		}elseif($get_tokens_by_code_array->family_name[0]){
 			$reg_last_name = $get_tokens_by_code_array->family_name[0];
 		}
-		if($get_user_info_array->middle_name[0]){
-			$reg_middle_name = $get_user_info_array->middle_name[0];
-		}elseif($get_tokens_by_code_array->middle_name[0]){
-			$reg_middle_name = $get_tokens_by_code_array->middle_name[0];
-		}
-		if($get_user_info_array->email[0]){
-			$reg_email = $get_user_info_array->email[0];
-		}elseif($get_tokens_by_code_array->email[0]){
-			$reg_email = $get_tokens_by_code_array->email[0];
-		}
 		if($get_user_info_array->country[0]){
 			$reg_country = $get_user_info_array->country[0];
 		}elseif($get_tokens_by_code_array->country[0]){
 			$reg_country = $get_tokens_by_code_array->country[0];
-		}
-		if($get_user_info_array->gender[0]){
-			if($get_user_info_array->gender[0] == 'male'){
-				$reg_gender = '1';
-			}else{
-				$reg_gender = '2';
-			}
-
-		}elseif($get_tokens_by_code_array->gender[0]){
-			if($get_tokens_by_code_array->gender[0] == 'male'){
-				$reg_gender = '1';
-			}else{
-				$reg_gender = '2';
-			}
 		}
 		if($get_user_info_array->locality[0]){
 			$reg_city = $get_user_info_array->locality[0];
@@ -1178,11 +1221,6 @@ function gluu_oxd_openid_login_validate(){
 		}elseif($get_tokens_by_code_array->phone_number[0]){
 			$reg_home_phone_number = $get_tokens_by_code_array->phone_number[0];
 		}
-		if($get_user_info_array->phone_mobile_number[0]){
-			$reg_phone_mobile_number = $get_user_info_array->phone_mobile_number[0];
-		}elseif($get_tokens_by_code_array->phone_mobile_number[0]){
-			$reg_phone_mobile_number = $get_tokens_by_code_array->phone_mobile_number[0];
-		}
 		if($get_user_info_array->picture[0]){
 			$reg_avatar = $get_user_info_array->picture[0];
 		}elseif($get_tokens_by_code_array->picture[0]){
@@ -1193,15 +1231,10 @@ function gluu_oxd_openid_login_validate(){
 		}elseif($get_tokens_by_code_array->street_address[0]){
 			$reg_street_address = $get_tokens_by_code_array->street_address[0];
 		}
-		if($get_user_info_array->birthdate[0]){
-			$reg_birthdate = $get_user_info_array->birthdate[0];
-		}elseif($get_tokens_by_code_array->birthdate[0]){
-			$reg_birthdate = $get_tokens_by_code_array->birthdate[0];
-		}
-		if($get_user_info_array->region[0]){
-			$reg_region = $get_user_info_array->region[0];
-		}elseif($get_tokens_by_code_array->region[0]){
-			$reg_region = $get_tokens_by_code_array->region[0];
+		if($get_user_info_array->street_address[1]){
+			$reg_street_address_2 = $get_user_info_array->street_address[1];
+		}elseif($get_tokens_by_code_array->street_address[1]){
+			$reg_street_address_2 = $get_tokens_by_code_array->street_address[1];
 		}
 
 		$username = '';
@@ -1213,27 +1246,7 @@ function gluu_oxd_openid_login_validate(){
 			$username = $email_split[0];
 		}
 		if( $reg_email ) {
-			if( username_exists( $username ) ) {
-				$user 	= get_user_by('login', $username );
-				$user_id 	= $user->ID;
-				wp_update_user(
-					array(
-						'ID' => $user_id,
-						'user_login'  =>  $username,
-						'user_nicename'  =>  $reg_nikname,
-						'user_email'    =>  $reg_email,
-						'display_name' => $reg_display_name,
-						'first_name' => $reg_first_name,
-						'last_name' => $reg_last_name,
-						'user_url' => $reg_website,
-					)
-				);
-				if(get_option('gluu_oxdOpenId_gluu_login_avatar') && isset($reg_avatar))
-					update_user_meta($user_id, 'oxdOpenId_user_avatar', $reg_avatar);
-				do_action( 'wp_login', $user->user_login, $user );
-				wp_set_auth_cookie( $user_id, true );
-			}
-			else if( email_exists( $reg_email ) ) {
+			if( email_exists( $reg_email ) ) {
 				$user 	= get_user_by('email', $reg_email );
 				$user_id 	= $user->ID;
 				wp_update_user(
@@ -1248,75 +1261,423 @@ function gluu_oxd_openid_login_validate(){
 						'user_url' => $reg_website,
 					)
 				);
+				$json = file_get_contents(get_option('gluu_op_host') . '/.well-known/openid-configuration');
+				$obj = json_decode($json);
+				$unless = array("aud","email","email_verified","exp","family_name","given_name","iat","iss","name","picture","sub","nickname");
+				foreach ($obj->claims_supported as $claims_supported){
+					if (!in_array($claims_supported, $unless)) {
+						if($get_tokens_by_code_array->$claims_supported[0]){
+							update_user_meta( $user_id, $claims_supported, $_POST[$claims_supported] );
+						}
+					}
+				}
+
+				if($reg_first_name){
+					update_user_meta( $user_id, 'billing_first_name', $reg_first_name );
+				}
+				if($reg_first_name){
+					update_user_meta( $user_id, 'billing_last_name', $reg_last_name );
+				}
+				if($reg_display_name){
+					update_user_meta( $user_id, 'billing_company', $reg_display_name );
+				}
+				if($reg_street_address){
+					update_user_meta( $user_id, 'billing_address_1', $reg_street_address );
+				}
+				if($reg_street_address_2){
+					update_user_meta( $user_id, 'billing_address_2', $reg_street_address_2 );
+				}
+				if($reg_city){
+					update_user_meta( $user_id, 'billing_city', $reg_city );
+				}
+				if($reg_postal_code){
+					update_user_meta( $user_id, 'billing_postcode', $reg_postal_code );
+				}
+				if($reg_country){
+					update_user_meta( $user_id, 'billing_country', $reg_country );
+				}
+				if($reg_city){
+					update_user_meta( $user_id, 'billing_state', $reg_city );
+				}
+				if($reg_home_phone_number){
+					update_user_meta( $user_id, 'billing_phone', $reg_home_phone_number );
+				}
+				if($reg_email){
+					update_user_meta( $user_id, 'billing_email', $reg_email );
+				}
+				if($reg_first_name){
+					update_user_meta( $user_id, 'shipping_first_name', $reg_first_name );
+				}
+				if($reg_first_name){
+					update_user_meta( $user_id, 'shipping_last_name', $reg_last_name );
+				}
+				if($reg_display_name){
+					update_user_meta( $user_id, 'shipping_company', $reg_display_name );
+				}
+				if($reg_street_address){
+					update_user_meta( $user_id, 'shipping_address_1', $reg_street_address );
+				}
+				if($reg_street_address_2){
+					update_user_meta( $user_id, 'shipping_address_2', $reg_street_address_2 );
+				}
+				if($reg_city){
+					update_user_meta( $user_id, 'shipping_city', $reg_city );
+				}
+				if($reg_postal_code){
+					update_user_meta( $user_id, 'shipping_postcode', $reg_postal_code );
+				}
+				if($reg_country){
+					update_user_meta( $user_id, 'shipping_country', $reg_country );
+				}
+				if($reg_city){
+					update_user_meta( $user_id, 'shipping_state', $reg_city );
+				}
+				if($reg_home_phone_number){
+					update_user_meta( $user_id, 'shipping_phone', $reg_home_phone_number );
+				}
+				if($reg_email){
+					update_user_meta( $user_id, 'shipping_email', $reg_email );
+				}
+				do_action( 'wp_login', $user->user_login, $user );
 				if(get_option('gluu_oxdOpenId_gluu_login_avatar') && isset($reg_avatar))
 					update_user_meta($user_id, 'oxdOpenId_user_avatar', $reg_avatar);
 				do_action( 'wp_login', $user->user_login, $user );
 				wp_set_auth_cookie( $user_id, true );
 			}
 			else {
-				if(get_option('gluu_oxd_openid_auto_register_enable')) {
-					$random_password 	= wp_generate_password( 10, false );
-					$userdata = array(
-						'user_login'  =>  $username,
-						'user_nicename'  =>  $reg_nikname,
-						'user_email'    =>  $reg_email,
-						'user_pass'   =>  $random_password,
-						'display_name' => $reg_display_name,
-						'first_name' => $reg_first_name,
-						'last_name' => $reg_last_name,
-						'user_url' => $reg_website,
-					);
-					$user_id 	= wp_insert_user( $userdata);
-					$user	= get_user_by('email', $reg_email );
-					if(get_option('gluu_oxdOpenId_gluu_login_avatar') && isset($reg_avatar)){
-						update_user_meta($user_id, 'oxdOpenId_user_avatar', $reg_avatar);
-					}
-					do_action( 'wp_login', $user->user_login, $user );
-					wp_set_auth_cookie( $user_id, true );
-				}
-			}
-		}else{
-			echo "<script>
-					alert('Missing claims : (email or username). Please talk to your organizational system administrator.');
+				if(!get_option('users_can_register')){
+					echo "<script>
+					alert('Automatic registration is disabled. If you need an account for this application, please contact the system administrator.');
 					location.href='".site_url()."';
 				 </script>";
-			exit;
+					exit;
+				}
+				$random_password 	= wp_generate_password( 10, false );
+				$userdata = array(
+					'user_login'  =>  $username,
+					'user_nicename'  =>  $reg_nikname,
+					'user_email'    =>  $reg_email,
+					'user_pass'   =>  $random_password,
+					'display_name' => $reg_display_name,
+					'first_name' => $reg_first_name,
+					'last_name' => $reg_last_name,
+					'user_url' => $reg_website,
+				);
+				$user_id 	= wp_insert_user( $userdata);
+				$user	= get_user_by('email', $reg_email );
+				$json = file_get_contents(get_option('gluu_op_host') . '/.well-known/openid-configuration');
+				$obj = json_decode($json);
+				$unless = array("aud","email","email_verified","exp","family_name","given_name","iat","iss","name","picture","sub","nickname");
+				foreach ($obj->claims_supported as $claims_supported){
+					if (!in_array($claims_supported, $unless)) {
+						if($get_tokens_by_code_array->$claims_supported[0]){
+							add_user_meta( $user_id, $claims_supported, $_POST[$claims_supported] );
+						}
+					}
+				}
+				if(get_option('gluu_oxdOpenId_gluu_login_avatar') && isset($reg_avatar)){
+					add_user_meta($user_id, 'oxdOpenId_user_avatar', $reg_avatar);
+				}
+				if($reg_first_name){
+					add_user_meta( $user_id, 'billing_first_name', $reg_first_name );
+				}
+				if($reg_first_name){
+					add_user_meta( $user_id, 'billing_last_name', $reg_last_name );
+				}
+				if($reg_display_name){
+					add_user_meta( $user_id, 'billing_company', $reg_display_name );
+				}
+				if($reg_street_address){
+					add_user_meta( $user_id, 'billing_address_1', $reg_street_address );
+				}
+				if($reg_street_address_2){
+					add_user_meta( $user_id, 'billing_address_2', $reg_street_address_2 );
+				}
+				if($reg_city){
+					add_user_meta( $user_id, 'billing_city', $reg_city );
+				}
+				if($reg_postal_code){
+					add_user_meta( $user_id, 'billing_postcode', $reg_postal_code );
+				}
+				if($reg_country){
+					add_user_meta( $user_id, 'billing_country', $reg_country );
+				}
+				if($reg_city){
+					add_user_meta( $user_id, 'billing_state', $reg_city );
+				}
+				if($reg_home_phone_number){
+					add_user_meta( $user_id, 'billing_phone', $reg_home_phone_number );
+				}
+				if($reg_email){
+					add_user_meta( $user_id, 'billing_email', $reg_email );
+				}
+				if($reg_first_name){
+					add_user_meta( $user_id, 'shipping_first_name', $reg_first_name );
+				}
+				if($reg_first_name){
+					add_user_meta( $user_id, 'shipping_last_name', $reg_last_name );
+				}
+				if($reg_display_name){
+					add_user_meta( $user_id, 'shipping_company', $reg_display_name );
+				}
+				if($reg_street_address){
+					add_user_meta( $user_id, 'shipping_address_1', $reg_street_address );
+				}
+				if($reg_street_address_2){
+					add_user_meta( $user_id, 'shipping_address_2', $reg_street_address_2 );
+				}
+				if($reg_city){
+					add_user_meta( $user_id, 'shipping_city', $reg_city );
+				}
+				if($reg_postal_code){
+					add_user_meta( $user_id, 'shipping_postcode', $reg_postal_code );
+				}
+				if($reg_country){
+					add_user_meta( $user_id, 'shipping_country', $reg_country );
+				}
+				if($reg_city){
+					add_user_meta( $user_id, 'shipping_state', $reg_city );
+				}
+				if($reg_home_phone_number){
+					add_user_meta( $user_id, 'shipping_phone', $reg_home_phone_number );
+				}
+				if($reg_email){
+					add_user_meta( $user_id, 'shipping_email', $reg_email );
+				}
+				do_action( 'wp_login', $user->user_login, $user );
+				wp_set_auth_cookie( $user_id, true );
+			}
 		}
 		$redirect_url = gluu_oxd_openid_get_redirect_url();
 		wp_redirect($redirect_url);
 		exit;
 
 	}
-	if(isset($_REQUEST['autoregister']) and strpos($_REQUEST['autoregister'],'false') !== false) {
-		if(!is_user_logged_in()) {
-			gluu_oxd_openid_disabled_register_message();
-		}
+}
+
+if(get_option('gluu_send_user_check') and get_option('gluu_oxd_id')) {
+	if(gluu_is_port_working()){
+		add_filter('login_url', 'gluu_my_login_redirect', 0, 0);
+		add_action('init','goto_login_page');
+		add_filter( 'logout_url', 'gluu_oxd_openid_redirect_after_logout',0,1);
 	}
+
 }
-function gluu_oxd_openid_disabled_register_message() {
-	wp_enqueue_script('thickbox');
-	wp_enqueue_style('thickbox');
-	wp_enqueue_script( 'oxd-wp-settings-script',plugins_url('includes/js/settings_popup.js', __FILE__), array('jquery'));
-	add_thickbox();
-	$script = '<script>
-							function getAutoRegisterDisabledMessage() {
-								var disabledMessage = "' . get_option('gluu_oxd_openid_register_disabled_message') . '";
-								return disabledMessage;
-							}
-						</script>';
-	echo $script;
-}
-if(get_option('gluu_send_user_check')) {
-	add_filter('login_url', 'gluu_my_login_redirect', 0, 0);
-	add_filter( 'logout_url', 'gluu_oxd_openid_redirect_after_logout',0,1);
+elseif(!get_option('gluu_send_user_check') and get_option('gluu_oxd_id')){
+	$page = basename($_SERVER['REQUEST_URI']);
+	if(strpos($_SERVER['REQUEST_URI'],'wp-login.php') !== FALSE || strpos($_SERVER['REQUEST_URI'],'wp-admin') !== FALSE){
+		?>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+		<script type="application/javascript">
+			jQuery( document ).ready(function() {
+				jQuery(".forgetmenot").after( "<br/><p><label>Login by OpenID Provider<input type='radio' name='radio' id='OpenID' value='Yes' /> </label></p><br/>" +
+					"<p><label>Show login form<input type='radio' name='radio' id='base' value='No' /> </label></p>" );
+				jQuery(".forgetmenot").after('<p><a href="<?php echo gluu_my_login_redirect();?>" style="display: block;width: inherit;height: 25px;background: #53cc6b;padding: 10px;text-align: center;text-decoration : none;border-radius: 5px;color: white;font-weight: bold;" class="btn btn-block" id="gluu_login">Login by OpenID Provider</a><br/></p>');
+				jQuery('.input').hide();
+				jQuery('#wp-submit').hide();
+				jQuery('.forgetmenot').hide();
+				jQuery('label[for="user_pass"]').hide();
+				jQuery('#nav').hide();
+				jQuery('label[for="user_login"]').hide();
+				jQuery('input:radio[name="radio"]').change(
+					function(){
+						if (jQuery(this).is(':checked') && jQuery(this).val() == 'Yes') {
+							jQuery('#gluu_login').show();
+							jQuery('.input').hide();
+							jQuery('label[for="user_pass"]').hide();
+							jQuery('label[for="user_login"]').hide();
+							jQuery('#nav').hide();
+							jQuery('.forgetmenot').hide();
+							jQuery('#wp-submit').hide();
+						}else{
+							jQuery('#gluu_login').hide();
+							jQuery('.input').show();
+							jQuery('#nav').show();
+							jQuery('label[for="user_pass"]').show();
+							jQuery('label[for="user_login"]').show();
+							jQuery('.forgetmenot').show();
+							jQuery('#wp-submit').show();
+						}
+					});
+				$('#OpenID').attr('checked', true);
+
+			});
+		</script>
+		<?php
+	}
 }
 function redirect_login() {
 	wp_redirect( gluu_my_login_redirect() );
 }
-//add_action( 'login_form_login', 'redirect_login' );
+function goto_login_page() {
+	$page = basename($_SERVER['REQUEST_URI']);
+	if(!is_user_logged_in()){
+		if(strpos($_SERVER['REQUEST_URI'],'wp-login.php') !== FALSE || strpos($_SERVER['REQUEST_URI'],'wp-admin') !== FALSE){
+			wp_redirect(gluu_my_login_redirect());
+			exit;
+		}
+	}
+}
 
 add_action( 'init', 'gluu_oxd_openid_login_validate' );
 add_action( 'init', 'gluu_oxd_openid_logout_validate' );
 
+function gluu_additional_profile_fields( $user ) {
+
+	$json = file_get_contents(get_option('gluu_op_host') . '/.well-known/openid-configuration');
+	$obj = json_decode($json);
+	$keys = array();
+	$unless = array("aud","email","email_verified","exp","family_name","given_name","iat","iss","name","picture","sub" ,"nickname");
+	foreach ($obj->claims_supported as $claims_supported){
+		if (!in_array($claims_supported, $unless) and get_user_meta( $user->ID, $claims_supported, true )) {
+			$value = get_user_meta( $user->ID, $claims_supported, true );
+			$keys[] = array('claim_name' => $claims_supported, 'claim_value' => $value);
+		}
+	}
+	?>
+	<h2>Other information from OpenID Provider </h2>
+	<table class="form-table">
+		<?php foreach ($keys as $key) { ?>
+			<tr>
+				<th><label for="<?php echo $key['claim_name']; ?>"><?php echo ucfirst($key['claim_name']); ?></label></th>
+				<td>
+					<input type="text" name="<?php echo $key['claim_name']; ?>" id="<?php echo $key['claim_name']; ?>"
+						   value="<?php echo $key['claim_value']; ?>" class="regular-text"/>
+					<br>
+					<span class="description"></span>
+				</td>
+			</tr>
+			<?php
+		}?>
+	</table>
+	<?php
+
+	if (!class_exists('WooCommerce')) {
+
+		$addresses = array(
+			'billing' => array(
+				'title' => 'Billing Address',
+				'fields' =>
+					array(
+						array('label' => 'First name', 'value' => get_user_meta($user->ID, 'billing_first_name', true)),
+						array('label' => 'Last name', 'value' => get_user_meta($user->ID, 'billing_last_name', true)),
+						array('label' => 'Company', 'value' => get_user_meta($user->ID, 'billing_company', true)),
+						array('label' => 'Address 1', 'value' => get_user_meta($user->ID, 'billing_address_1', true)),
+						array('label' => 'Address 2', 'value' => get_user_meta($user->ID, 'billing_address_2', true)),
+						array('label' => 'City', 'value' => get_user_meta($user->ID, 'billing_city', true)),
+						array('label' => 'Postcode', 'value' => get_user_meta($user->ID, 'billing_postcode', true)),
+						array('label' => 'Country', 'value' => get_user_meta($user->ID, 'billing_country', true)),
+						array('label' => 'State/County', 'value' => get_user_meta($user->ID, 'billing_state', true)),
+						array('label' => 'Telephone', 'description' => get_user_meta($user->ID, 'billing_phone', true)),
+						array('label' => 'Email', 'description' => get_user_meta($user->ID, 'billing_email', true))
+					)
+			),
+			'shipping' => array('title' => 'Shipping Address',
+				'fields' =>
+					array(array('label' => 'First name', 'value' => get_user_meta($user->ID, 'shipping_first_name', true)),
+						array('label' => 'Last name', 'value' => get_user_meta($user->ID, 'shipping_last_name', true)),
+						array('label' => 'Company', 'value' => get_user_meta($user->ID, 'shipping_company', true)),
+						array('label' => 'Address 1', 'value' => get_user_meta($user->ID, 'shipping_address_1', true)),
+						array('label' => 'Address 2', 'value' => get_user_meta($user->ID, 'shipping_address_2', true)),
+						array('label' => 'City', 'value' => get_user_meta($user->ID, 'shipping_city', true)),
+						array('label' => 'Postcode', 'value' => get_user_meta($user->ID, 'shipping_postcode', true)),
+						array('label' => 'Country', 'value' => get_user_meta($user->ID, 'shipping_country', true)),
+						array('label' => 'State/County', 'value' => get_user_meta($user->ID, 'shipping_state', true)),
+						array('label' => 'Telephone', 'description' => get_user_meta($user->ID, 'shipping_phone', true)),
+						array('label' => 'Email', 'description' => get_user_meta($user->ID, 'shipping_email', true))
+					)
+			)
+		);
+		?>
+
+		<h3><?php echo $addresses['billing']['title']; ?> </h3>
+		<table class="form-table">
+			<?php foreach ($addresses['billing']['fields'] as $fields){ ?>
+				<tr>
+					<th><label for="<?php echo $fields['value']; ?>"><?php echo $fields['label']; ?></label>
+					</th>
+					<td>
+						<input type="text" name="<?php echo $fields['value']; ?>"
+							   id="<?php echo $fields['value']; ?>" value="<?php echo $fields['value']; ?>"
+							   class="regular-text"/>
+						<br>
+						<span class="description"></span>
+					</td>
+				</tr>
+				<?php
+			}
+			?>
+		</table>
+		<?php ?>
+		<h3><?php echo $addresses['shipping']['title']; ?> </h3>
+		<table class="form-table">
+			<?php foreach ($addresses['shipping']['fields'] as $fields){ ?>
+				<tr>
+					<th><label for="<?php echo $fields['value']; ?>"><?php echo $fields['label']; ?></label>
+					</th>
+					<td>
+						<input type="text" name="<?php echo $fields['value']; ?>"
+							   id="<?php echo $fields['value']; ?>" value="<?php echo $fields['value']; ?>"
+							   class="regular-text"/>
+						<br>
+						<span class="description"></span>
+					</td>
+				</tr>
+				<?php
+			}
+			?>
+		</table>
+		<?php
+
+	}
+}
+
+add_action( 'show_user_profile', 'gluu_additional_profile_fields' );
+add_action( 'edit_user_profile', 'gluu_additional_profile_fields' );
+
+
+function gluu_save_profile_fields( $user_id ) {
+
+	if ( ! current_user_can( 'edit_user', $user_id ) ) {
+		return false;
+	}
+	$json = file_get_contents(get_option('gluu_op_host') . '/.well-known/openid-configuration');
+	$obj = json_decode($json);
+	foreach ($obj->claims_supported as $claims_supported){
+		if ( empty( $_POST[$claims_supported] ) and isset($_POST[$claims_supported])) {
+			return false;
+		}
+		update_user_meta( $user_id, $claims_supported, $_POST[$claims_supported] );
+	}
+	if (!class_exists('WooCommerce')) {
+
+		update_user_meta($user_id, 'billing_first_name', $_POST['billing_first_name']);
+		update_user_meta($user_id, 'billing_last_name', $_POST['billing_last_name']);
+		update_user_meta($user_id, 'billing_company', $_POST['billing_company']);
+		update_user_meta($user_id, 'billing_address_1', $_POST['billing_address_1']);
+		update_user_meta($user_id, 'billing_address_2', $_POST['billing_address_2']);
+		update_user_meta($user_id, 'billing_city', $_POST['billing_city']);
+		update_user_meta($user_id, 'billing_postcode', $_POST['billing_postcode']);
+		update_user_meta($user_id, 'billing_country', $_POST['billing_country']);
+		update_user_meta($user_id, 'billing_state', $_POST['billing_state']);
+		update_user_meta($user_id, 'billing_phone', $_POST['billing_phone']);
+		update_user_meta($user_id, 'billing_email', $_POST['billing_email']);
+
+		update_user_meta($user_id, 'shipping_first_name', $_POST['shipping_first_name']);
+		update_user_meta($user_id, 'shipping_last_name', $_POST['shipping_last_name']);
+		update_user_meta($user_id, 'shipping_company', $_POST['shipping_company']);
+		update_user_meta($user_id, 'shipping_address_1', $_POST['shipping_address_1']);
+		update_user_meta($user_id, 'shipping_address_2', $_POST['shipping_address_2']);
+		update_user_meta($user_id, 'shipping_city', $_POST['shipping_city']);
+		update_user_meta($user_id, 'shipping_postcode', $_POST['shipping_postcode']);
+		update_user_meta($user_id, 'shipping_country', $_POST['shipping_country']);
+		update_user_meta($user_id, 'shipping_state', $_POST['shipping_state']);
+		update_user_meta($user_id, 'shipping_phone', $_POST['shipping_phone']);
+		update_user_meta($user_id, 'shipping_email', $_POST['shipping_email']);
+	}
+}
+
+add_action( 'personal_options_update', 'gluu_save_profile_fields' );
+add_action( 'edit_user_profile_update', 'gluu_save_profile_fields' );
 
 ?>

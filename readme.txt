@@ -12,30 +12,29 @@ This plugin will enable you to authenticate users against any standard OpenID Co
 
 == Description ==
 = OpenID Connect Single Sign-On (SSO) Plugin By Gluu =
-This plugin will enable you to authenticate users against any standard OpenID Connect Provider. You’ll need to also run a local oxd OpenID Connect client service. The oxd middleware service is easy to install, and makes it easier to keep up-to-date with the latest security fixes for OAuth2. There are oxd plugins, modules and extennsions for many popular platforms and frameworks like: Wordpress, Magento, OpenCart, SugarCRM, SuiteCRM, Drupal, Roundcube, Spring Framework, Play Framework, Ruby on Rails and Python Flask. Using this plugin, you’ll be able to request a certain type of authentication using the OpenID Connect “acr” parameter. You may want to use strong two-factor authentication (2FA), or social login to Google, Facebook or other popular sites. Also supported is Super Gluu--a free mobile two factor authentication app. If you are also looking for a modern access management platform, you should consider the Gluu Server Community Edition. The Gluu Server includes an OpenID Connect Provider that will enable you to create local accounts for people in your domain, and to manage single sign-on (SSO) across your websites.
+This plugin will enable you to authenticate users against any standard OpenID Connect Provider. In order for this plugin to work you'll need two things in addition to the plugin:
+
+1) You’ll need to run a local oxd OpenID Connect client service. The oxd middleware service is easy to install, and makes it easier to keep up-to-date with the latest security fixes for OAuth2. There are oxd plugins, modules and extensions for many popular platforms and frameworks like: Wordpress, Magento, OpenCart, SugarCRM, SuiteCRM, Drupal, Roundcube, Spring Framework, Play Framework, Ruby on Rails and Python Flask.
+
+2) You'll also need to a standard OpenID Connect Provider (OP), like Google or the Gluu Server, that will handle the user authentications. If you are also looking for a modern access management platform, you should consider the Gluu Server Community Edition. The Gluu Server includes an OpenID Connect Provider that will enable you to create local accounts for people in your domain, and to manage single sign-on (SSO) across your websites.
+
+Using this plugin, you’ll be able to request authentication mechanisms supported by the OP using the OpenID Connect “acr” parameter. You may want to use strong two-factor authentication (2FA), or social login to Google, Facebook or other popular sites. If you're using the Gluu Server as your OP, there are a few out-of-the-box options for authentication, including basic username/password, FIDO U2F tokens, Duo, and Super Gluu--Gluu's free mobile two factor authentication app.
 
 = Login =
-This plugin enables Login. Allow your visitors to choose from their favourite authenticate login apps to login and optionally auto-register with your website or blog.
-
-One-click login to your WordPress site using authenticate login applications like U2F Fido token, Google+, Duo, OxPush, Basic.
+This plugin enables a WordPress site to send users to an external OpenID Connect provider for login.
 
 = Easy Integration =
-Easy integration with your website with options to add SSO login on login page, registration page and comments section. Add `OpenID Connect By Gluu - OpenID Connect Single Sign-On` widget to add authenticate login in widget area. Add shortcode [gluu_login shape="oval" theme="default" space="5" size="40"] to add login in other places.
+Simply add the `OpenID Connect By Gluu - OpenID Connect Single Sign-On` widget to display a login button in your sites widget area. Add the shortcode [gluu_login shape="oval" theme="default" space="5" size="40"] to add a login button in other places.
 
-= Single sign-on =
-Single Sign-On using login creates a single authentication system for multiple web properties allowing users to navigate websites with a single account.
-
-All other authentication applications are supported through in website https://support.gluu.org.
+= Single Sign-On (SSO) =
+By leveraging a central identity provider for authentication you can enable single sign-on (SSO) for your users to other web properties that rely on the same authentication system.
 
 = Features - =
-
-*	Clean and easy to use WordPress admin UI
-*	One-click login to your website using any authentication login app.
-*	Login to authentication applications - U2F Fido token, Google+, Duo, OxPush, Gluu Basic.
-*	Optional automatic user registration after login if the user is not already registered with your site.
-*	Assign universal role to users registering through login
-*	Variety of troubleshooting topics in plugin.
-*	**Support** using website https://support.gluu.org.
+*    Easy to use WordPress admin UI
+*    Leverage stronger authentication mechanisms, like Fido U2F tokens, Google+, Duo, Super Gluu.
+*    Optional automatic user registration after login if the user is not already registered with your site.
+*    Assign a universal role to users registering during login.
+*    Get **support** by opening an issue on https://support.gluu.org.
 
 = Website =
 *   **Gluu server site :** https://www.gluu.org
@@ -71,6 +70,7 @@ Please visit to support website https://support.gluu.org.
 3. Edit page for OpenID Connect Provider, which supports dynamic registration.
 4. Edit page for OpenID Connect Provider, which doesn't support dynamic registration.
 5. OpenID Connect Configuration
+6. Frontend login page
 
 == Changelog ==
 

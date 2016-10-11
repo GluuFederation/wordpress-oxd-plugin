@@ -21,6 +21,14 @@ class UpdateSiteRegistration extends ClientOXDRP
     private $request_response_types = null;
     private $request_client_logout_uri = null;
     private $request_oxd_id = null;
+    /**
+     * @var string $request_authorization_redirect_uri      Site authorization redirect uri
+     */
+    private $request_client_id = null;
+    /**
+     * @var string $request_authorization_redirect_uri      Site authorization redirect uri
+     */
+    private $request_client_secret = null;
     /**end request parameter**/
 
     /**start parameter for response!**/
@@ -263,6 +271,38 @@ class UpdateSiteRegistration extends ClientOXDRP
         $this->request_oxd_id = $request_oxd_id;
     }
 
+    /**
+     * @return string
+     */
+    public function getRequestClientId()
+    {
+        return $this->request_client_id;
+    }
+
+    /**
+     * @param string $request_client_id
+     */
+    public function setRequestClientId($request_client_id)
+    {
+        $this->request_client_id = $request_client_id;
+    }
+
+    /**
+     * @return string
+     */
+    public function getRequestClientSecret()
+    {
+        return $this->request_client_secret;
+    }
+
+    /**
+     * @param string $request_client_secret
+     */
+    public function setRequestClientSecret($request_client_secret)
+    {
+        $this->request_client_secret = $request_client_secret;
+    }
+
     public function setParams()
     {
         $this->params = array(
@@ -279,7 +319,9 @@ class UpdateSiteRegistration extends ClientOXDRP
             "grant_types" => $this->getRequestGrantTypes(),
             "response_types"=> $this->getRequestResponseTypes(),
             "client_secret_expires_at"=> 3080736637943,
-            "client_logout_uris"=> [$this->getRequestClientLogoutUri()]
+            "client_logout_uris"=> [$this->getRequestClientLogoutUri()],
+            "client_id"=> $this->getRequestClientId(),
+            "client_secret"=> $this->getRequestClientSecret()
         );
     }
 

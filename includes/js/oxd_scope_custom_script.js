@@ -20,11 +20,10 @@ jQuery(function() {
     });
 
     var scntDiv_script = jQuery('#p_scents_script');
-    var j = jQuery('#p_scents_script p').size() + 1;
 
     jQuery('#add_new_suctom_script').live('click', function() {
         jQuery('<p>' +
-            '<input type="text" style="margin-right: 5px; " name="new_custom_script_value_'+j+'" size="40" placeholder="ACR Value" />' +
+            '<input type="text" style="margin-right: 5px; " name="acr_value[]" size="40" placeholder="ACR Value" />' +
             '<button id="remScnt_script">Remove</button>' +
             '</p>').appendTo(scntDiv_script);
         j++;

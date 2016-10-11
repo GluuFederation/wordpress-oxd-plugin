@@ -638,10 +638,9 @@ function gluu_oxd_openid_login_config_info($custom_nonce){
                                 <div >
 
                                     <input <?php if(!gluu_is_oxd_registered()) echo 'disabled'?> type="button" id="add_new_suctom_script"  value="Add acr"/>
-                                    <input type="hidden" name="count_scripts" value="1" id="count_scripts">
                                     <div id="p_scents_script">
                                         <p>
-                                            <input <?php if(!gluu_is_oxd_registered()) echo 'disabled'?> type="text" style="margin-right: 5px " name="new_custom_script_value_1" size="40" placeholder="ACR Value" />
+                                            <input <?php if(!gluu_is_oxd_registered()) echo 'disabled'?> type="text" style="margin-right: 5px " name="acr_value[]" size="40" placeholder="ACR Value" />
                                         </p>
                                     </div>
                                 </div>
