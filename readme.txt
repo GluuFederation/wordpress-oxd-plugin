@@ -23,9 +23,6 @@ Using this plugin, you’ll be able to request authentication mechanisms support
 = Login =
 This plugin enables a WordPress site to send users to an external OpenID Connect provider for login.
 
-= Easy Integration =
-Simply add the `OpenID Connect By Gluu - OpenID Connect Single Sign-On` widget to display a login button in your sites widget area. Add the shortcode [gluu_login shape="oval" theme="default" space="5" size="40"] to add a login button in other places.
-
 = Single Sign-On (SSO) =
 By leveraging a central identity provider for authentication you can enable single sign-on (SSO) for your users to other web properties that rely on the same authentication system.
 
