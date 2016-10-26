@@ -57,7 +57,6 @@ By leveraging a central identity provider (IDP) for authentication you can enabl
 = Once Activated =
 Register an OP, request user scopes, and configure authentication.  
 
-
 Read the documentation: https://oxd.gluu.org/docs/plugin/wordpress/
 
 == Screenshots ==
