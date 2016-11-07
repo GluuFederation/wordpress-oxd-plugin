@@ -43,7 +43,7 @@ class gluu_OpenID_OXD {
 		remove_action( 'admin_notices', array( $this, 'gluu_oxd_openid_success_message') );
 		remove_action( 'admin_notices', array( $this, 'gluu_oxd_openid_error_message') );
 		//set default values
-		update_option('default_role','subscriber');
+		//update_option('default_role','subscriber');
 		add_option('gluu_oxd_openid_scops',array("openid", "profile","email"));
 		add_option('gluu_oxd_openid_custom_scripts',array('none'));
 	}
@@ -188,17 +188,16 @@ class gluu_OpenID_OXD {
 							$this->gluu_oxd_openid_show_error_message();
 							return;
 						}
-
-						if ($_POST['gluu_users_can_register']==1) {
-							update_option('gluu_users_can_register', 1);
-						}elseif($_POST['gluu_users_can_register']==2){
-							update_option('gluu_users_can_register', 2);
-							if(!empty(sanitize_text_field($_POST['gluu_new_role']))){
-								update_option('gluu_new_role', $_POST['gluu_new_role']);
-								$config = get_option('gluu_oxd_config');
-								array_push($config['scope'],'permission');
-								update_option('gluu_oxd_config', $config);
-							}
+						if (empty($_POST['default_role']) || !empty($_POST['default_role']) && trim($_POST['default_role']) == '') {
+							$this->gluu_oxd_openid_show_error_message();
+							update_option('gluu_oxd_openid_message', '<strong>ERROR</strong>: You must include a role.');
+							return;
+						}
+						else {
+							update_option('default_role', wp_unslash($_POST['default_role']));
+						}
+						if (isset($_POST['gluu_server_url']) and !empty($_POST['gluu_server_url'])) {
+							update_option('gluu_op_host', sanitize_text_field($_POST['gluu_server_url']));
 						}
 						if  (!empty($_POST['gluu_server_url'])) {
 							if (filter_var(sanitize_text_field($_POST['gluu_server_url']), FILTER_VALIDATE_URL) === false) {
@@ -216,31 +215,77 @@ class gluu_OpenID_OXD {
 								exit;
 							}
 						}
-
 						if (isset($_POST['gluu_server_url']) and !empty($_POST['gluu_server_url'])) {
 							update_option('gluu_op_host', sanitize_text_field($_POST['gluu_server_url']));
 						}
 						if (isset($_POST['gluu_custom_url']) and !empty($_POST['gluu_custom_url'])) {
 							update_option('gluu_custom_url', sanitize_text_field($_POST['gluu_custom_url']));
-						}else{
+						}
+						else{
 							update_option('gluu_custom_url', '');
 						}
 						$config_option = get_option('gluu_oxd_config');
 						$config_option['oxd_host_port'] = intval($_POST['oxd_host_port']);
 						$oxd_host_port = intval($_POST['oxd_host_port']);
 						update_option('gluu_oxd_config', $config_option);
-
-
-						if (empty($_POST['default_role']) || !empty($_POST['default_role']) && trim($_POST['default_role']) == '') {
-							$this->gluu_oxd_openid_show_error_message();
-							update_option('gluu_oxd_openid_message', '<strong>ERROR</strong>: You must include a role.');
-							return;
+						if($_POST['gluu_users_can_register']==1) {
+							update_option('gluu_users_can_register', 1);
+							if(!empty($_POST['gluu_new_role'])){
+								array_values(array_filter($_POST['gluu_new_role']));
+								$role_array = array();
+								foreach ($_POST['gluu_new_role'] as $gluu_new_role){
+									if($gluu_new_role){
+										array_push($role_array,$gluu_new_role);
+									}
+								}
+								update_option('gluu_new_role', $role_array);
+								$config = get_option('gluu_oxd_config');
+								array_push($config['scope'],'permission');
+								update_option('gluu_oxd_config', $config);
+							}else{
+								update_option('gluu_new_role', null);
+							}
 						}
-						else {
-							update_option('default_role', wp_unslash($_POST['default_role']));
+						if($_POST['gluu_users_can_register']==2){
+							update_option('gluu_users_can_register',2);
+							if(!empty(array_values(array_filter($_POST['gluu_new_role'])))){
+								$role_array = array();
+								foreach ($_POST['gluu_new_role'] as $gluu_new_role){
+									if($gluu_new_role){
+										array_push($role_array,$gluu_new_role);
+									}
+								}
+								update_option('gluu_new_role', $role_array);
+								$config = get_option('gluu_oxd_config');
+								array_push($config['scope'],'permission');
+								update_option('gluu_oxd_config', $config);
+							}
+							else{
+								update_option('gluu_new_role', null);
+								update_option('gluu_oxd_openid_message', 'Please enter a role to use for automatic registration or choose one of the other enrollment options.');
+								$this->gluu_oxd_openid_show_error_message();
+								return;
+								exit;
+
+							}
 						}
-						if (isset($_POST['gluu_server_url']) and !empty($_POST['gluu_server_url'])) {
-							update_option('gluu_op_host', sanitize_text_field($_POST['gluu_server_url']));
+						if($_POST['gluu_users_can_register']==3){
+							update_option('gluu_users_can_register',3);
+							if(!empty($_POST['gluu_new_role'])){
+								array_values(array_filter($_POST['gluu_new_role']));
+								$role_array = array();
+								foreach ($_POST['gluu_new_role'] as $gluu_new_role){
+									if($gluu_new_role){
+										array_push($role_array,$gluu_new_role);
+									}
+								}
+								update_option('gluu_new_role', $role_array);
+								$config = get_option('gluu_oxd_config');
+								array_push($config['scope'],'permission');
+								update_option('gluu_oxd_config', $config);
+							}else{
+								update_option('gluu_new_role', null);
+							}
 						}
 						if(!gluu_is_port_working()){
 							update_option('gluu_oxd_openid_message', 'Can not connect to the oxd server. Please check the oxd-config.json file to make sure you have entered the correct port and the oxd server is operational.');
@@ -248,7 +293,13 @@ class gluu_OpenID_OXD {
 							return;
 						}
 						if (isset($_POST['gluu_server_url']) and !empty($_POST['gluu_server_url'])) {
-							$json = file_get_contents(sanitize_text_field($_POST['gluu_server_url']).'/.well-known/openid-configuration');
+							$arrContextOptions=array(
+								"ssl"=>array(
+									"verify_peer"=>false,
+									"verify_peer_name"=>false,
+								),
+							);
+							$json = file_get_contents(sanitize_text_field($_POST['gluu_server_url']).'/.well-known/openid-configuration', false, stream_context_create($arrContextOptions));
 							$obj = json_decode($json);
 							if(!empty($obj->userinfo_endpoint)){
 								if(empty($obj->registration_endpoint)){
@@ -343,14 +394,26 @@ class gluu_OpenID_OXD {
 
 									update_option('gluu_oxd_config', $config_option);
 									if(!empty(sanitize_text_field($_POST['gluu_new_role']))){
-										update_option('gluu_new_role', $_POST['gluu_new_role']);
+										$role_array = array();
+										foreach ($_POST['gluu_new_role'] as $gluu_new_role){
+											if($gluu_new_role){
+												array_push($role_array,$gluu_new_role);
+											}
+										}
+										update_option('gluu_new_role', $role_array);
 										$config = get_option('gluu_oxd_config');
 										array_push($config['scope'],'permission');
 										update_option('gluu_oxd_config', $config);
 									}
 									$obj = null;
 									if (!empty(get_option('gluu_op_host'))) {
-										$json = file_get_contents(get_option('gluu_op_host') . '/.well-known/openid-configuration');
+										$arrContextOptions=array(
+											"ssl"=>array(
+												"verify_peer"=>false,
+												"verify_peer_name"=>false,
+											),
+										);
+										$json = file_get_contents(get_option('gluu_op_host').'/.well-known/openid-configuration', false, stream_context_create($arrContextOptions));
 										$obj = json_decode($json);
 										update_option('gluu_oxd_openid_scops', $obj->scopes_supported);
 									}
@@ -390,7 +453,13 @@ class gluu_OpenID_OXD {
 										update_option('gluu_oxd_id', $register_site->getResponseOxdId());
 										update_option('gluu_op_host', $register_site->getResponseOpHost());
 
-										$json = file_get_contents(get_option('gluu_op_host').'/.well-known/openid-configuration');
+										$arrContextOptions=array(
+											"ssl"=>array(
+												"verify_peer"=>false,
+												"verify_peer_name"=>false,
+											),
+										);
+										$json = file_get_contents(get_option('gluu_op_host').'/.well-known/openid-configuration', false, stream_context_create($arrContextOptions));
 										$obj = json_decode($json);
 										update_option('gluu_oxd_openid_scops', $obj->scopes_supported);
 										if(!empty($obj->acr_values_supported)){
@@ -409,7 +478,13 @@ class gluu_OpenID_OXD {
 										);
 										update_option('gluu_oxd_config', $config_option);
 										if(!empty(sanitize_text_field($_POST['gluu_new_role']))){
-											update_option('gluu_new_role', $_POST['gluu_new_role']);
+											$role_array = array();
+											foreach ($_POST['gluu_new_role'] as $gluu_new_role){
+												if($gluu_new_role){
+													array_push($role_array,$gluu_new_role);
+												}
+											}
+											update_option('gluu_new_role', $role_array);
 											$config = get_option('gluu_oxd_config');
 											array_push($config['scope'],'permission');
 											update_option('gluu_oxd_config', $config);
@@ -442,7 +517,13 @@ class gluu_OpenID_OXD {
 							);
 							update_option('gluu_oxd_config', $config_option);
 							if(!empty(sanitize_text_field($_POST['gluu_new_role']))){
-								update_option('gluu_new_role', $_POST['gluu_new_role']);
+								$role_array = array();
+								foreach ($_POST['gluu_new_role'] as $gluu_new_role){
+									if($gluu_new_role){
+										array_push($role_array,$gluu_new_role);
+									}
+								}
+								update_option('gluu_new_role', $role_array);
 								$config = get_option('gluu_oxd_config');
 								array_push($config['scope'],'permission');
 								update_option('gluu_oxd_config', $config);
@@ -478,7 +559,14 @@ class gluu_OpenID_OXD {
 								update_option('gluu_oxd_id', $register_site->getResponseOxdId());
 								update_option('gluu_op_host', $register_site->getResponseOpHost());
 
-								$json = file_get_contents(get_option('gluu_op_host').'/.well-known/openid-configuration');
+								$arrContextOptions=array(
+									"ssl"=>array(
+										"verify_peer"=>false,
+										"verify_peer_name"=>false,
+									),
+								);
+								$json = file_get_contents(get_option('gluu_op_host').'/.well-known/openid-configuration', false, stream_context_create($arrContextOptions));
+
 								$obj = json_decode($json);
 								update_option('gluu_oxd_openid_scops', $obj->scopes_supported);
 								if(!empty($obj->acr_values_supported)){
@@ -497,7 +585,13 @@ class gluu_OpenID_OXD {
 								);
 								update_option('gluu_oxd_config', $config_option);
 								if(!empty(sanitize_text_field($_POST['gluu_new_role']))){
-									update_option('gluu_new_role', $_POST['gluu_new_role']);
+									$role_array = array();
+									foreach ($_POST['gluu_new_role'] as $gluu_new_role){
+										if($gluu_new_role){
+											array_push($role_array,$gluu_new_role);
+										}
+									}
+									update_option('gluu_new_role', $role_array);
 									$config = get_option('gluu_oxd_config');
 									array_push($config['scope'],'permission');
 									update_option('gluu_oxd_config', $config);
@@ -512,6 +606,11 @@ class gluu_OpenID_OXD {
 						}
 					}
 					else if (isset($_POST['option']) and $_POST['option'] == "oxd_openid_edit_config") {
+						if(!isset($_SERVER['HTTPS']) or $_SERVER['HTTPS'] != "on") {
+							update_option('gluu_oxd_openid_message', 'OpenID Connect requires https. This plugin will not work if your website uses http only.');
+							$this->gluu_oxd_openid_show_error_message();
+							return;
+						}
 						if  (!empty($_POST['gluu_custom_url'])) {
 							if (filter_var(sanitize_text_field($_POST['gluu_custom_url']), FILTER_VALIDATE_URL) === false) {
 								update_option('gluu_oxd_openid_message', 'Please enter valid custom URI.');
@@ -524,24 +623,6 @@ class gluu_OpenID_OXD {
 						}else{
 							update_option('gluu_custom_url', '');
 						}
-
-						if(!isset($_SERVER['HTTPS']) or $_SERVER['HTTPS'] != "on") {
-							update_option('gluu_oxd_openid_message', 'OpenID Connect requires https. This plugin will not work if your website uses http only.');
-							$this->gluu_oxd_openid_show_error_message();
-							return;
-						}
-
-						if ($_POST['gluu_users_can_register']==1) {
-							update_option('gluu_users_can_register', 1);
-						}elseif($_POST['gluu_users_can_register']==2){
-							update_option('gluu_users_can_register', 2);
-							if(!empty(sanitize_text_field($_POST['gluu_new_role']))){
-								update_option('gluu_new_role', $_POST['gluu_new_role']);
-								$config = get_option('gluu_oxd_config');
-								array_push($config['scope'],'permission');
-								update_option('gluu_oxd_config', $config);
-							}
-						}
 						if (empty($_POST['default_role']) || !empty($_POST['default_role']) && trim($_POST['default_role']) == '') {
 							update_option('gluu_oxd_openid_message', '<strong>ERROR</strong>: You must include a role.');
 						} else {
@@ -551,6 +632,66 @@ class gluu_OpenID_OXD {
 						$config_option['oxd_host_port'] = intval($_POST['oxd_host_port']);
 						$oxd_host_port = intval($_POST['oxd_host_port']);
 						update_option('gluu_oxd_config', $config_option);
+
+						if($_POST['gluu_users_can_register']==1) {
+							update_option('gluu_users_can_register', 1);
+							if(!empty($_POST['gluu_new_role'])){
+								array_values(array_filter($_POST['gluu_new_role']));
+								$role_array = array();
+								foreach ($_POST['gluu_new_role'] as $gluu_new_role){
+									if($gluu_new_role){
+										array_push($role_array,$gluu_new_role);
+									}
+								}
+								update_option('gluu_new_role', $role_array);
+								$config = get_option('gluu_oxd_config');
+								array_push($config['scope'],'permission');
+								update_option('gluu_oxd_config', $config);
+							}else{
+								update_option('gluu_new_role', null);
+							}
+						}
+						if($_POST['gluu_users_can_register']==2){
+							update_option('gluu_users_can_register',2);
+							if(!empty($_POST['gluu_new_role'])){
+								array_values(array_filter($_POST['gluu_new_role']));
+								$role_array = array();
+								foreach ($_POST['gluu_new_role'] as $gluu_new_role){
+									if($gluu_new_role){
+										array_push($role_array,$gluu_new_role);
+									}
+								}
+								update_option('gluu_new_role', $role_array);
+								$config = get_option('gluu_oxd_config');
+								array_push($config['scope'],'permission');
+								update_option('gluu_oxd_config', $config);
+							}else{
+								update_option('gluu_new_role', null);
+								update_option('gluu_oxd_openid_message', 'Please enter a role to use for automatic registration or choose one of the other enrollment options.');
+								$this->gluu_oxd_openid_show_error_message();
+								return;
+								exit;
+
+							}
+						}
+						if($_POST['gluu_users_can_register']==3){
+							update_option('gluu_users_can_register',3);
+							if(!empty($_POST['gluu_new_role'])){
+								array_values(array_filter($_POST['gluu_new_role']));
+								$role_array = array();
+								foreach ($_POST['gluu_new_role'] as $gluu_new_role){
+									if($gluu_new_role){
+										array_push($role_array,$gluu_new_role);
+									}
+								}
+								update_option('gluu_new_role', $role_array);
+								$config = get_option('gluu_oxd_config');
+								array_push($config['scope'],'permission');
+								update_option('gluu_oxd_config', $config);
+							}else{
+								update_option('gluu_new_role', null);
+							}
+						}
 						if(!gluu_is_port_working()){
 							update_option('gluu_oxd_id', '');
 							update_option('gluu_oxd_openid_message', 'Can not connect to the oxd server. Please check the oxd-config.json file to make sure you have entered the correct port and the oxd server is operational.');
@@ -577,14 +718,27 @@ class gluu_OpenID_OXD {
 							);
 							update_option('gluu_oxd_config', $config_option);
 							if(!empty(sanitize_text_field($_POST['gluu_new_role']))){
-								update_option('gluu_new_role', $_POST['gluu_new_role']);
+								$role_array = array();
+								foreach ($_POST['gluu_new_role'] as $gluu_new_role){
+									if($gluu_new_role){
+										array_push($role_array,$gluu_new_role);
+									}
+								}
+								update_option('gluu_new_role', $role_array);
 								$config = get_option('gluu_oxd_config');
 								array_push($config['scope'],'permission');
 								update_option('gluu_oxd_config', $config);
 							}
 						}
 						if (!empty(get_option('gluu_op_host'))) {
-							$json = file_get_contents(get_option('gluu_op_host').'/.well-known/openid-configuration');
+							$arrContextOptions=array(
+								"ssl"=>array(
+									"verify_peer"=>false,
+									"verify_peer_name"=>false,
+								),
+							);
+							$json = file_get_contents(get_option('gluu_op_host').'/.well-known/openid-configuration', false, stream_context_create($arrContextOptions));
+
 							$obj = json_decode($json);
 							if(!empty($obj->userinfo_endpoint)){
 								if(empty($obj->registration_endpoint)){
@@ -595,7 +749,13 @@ class gluu_OpenID_OXD {
 									$config_option['oxd_host_port'] = $oxd_host_port;
 									update_option('gluu_oxd_config', $config_option);
 									if(!empty(sanitize_text_field($_POST['gluu_new_role']))){
-										update_option('gluu_new_role', $_POST['gluu_new_role']);
+										$role_array = array();
+										foreach ($_POST['gluu_new_role'] as $gluu_new_role){
+											if($gluu_new_role){
+												array_push($role_array,$gluu_new_role);
+											}
+										}
+										update_option('gluu_new_role', $role_array);
 										$config = get_option('gluu_oxd_config');
 										array_push($config['scope'],'permission');
 										update_option('gluu_oxd_config', $config);
@@ -616,7 +776,13 @@ class gluu_OpenID_OXD {
 										);
 										update_option('gluu_oxd_config', $config_option);
 										if(!empty(sanitize_text_field($_POST['gluu_new_role']))){
-											update_option('gluu_new_role', $_POST['gluu_new_role']);
+											$role_array = array();
+											foreach ($_POST['gluu_new_role'] as $gluu_new_role){
+												if($gluu_new_role){
+													array_push($role_array,$gluu_new_role);
+												}
+											}
+											update_option('gluu_new_role', $role_array);
 											$config = get_option('gluu_oxd_config');
 											array_push($config['scope'],'permission');
 											update_option('gluu_oxd_config', $config);
@@ -683,7 +849,14 @@ class gluu_OpenID_OXD {
 						}
 						$obj = null;
 						if (!empty(get_option('gluu_op_host'))) {
-							$json = file_get_contents(get_option('gluu_op_host') . '/.well-known/openid-configuration');
+							$arrContextOptions=array(
+								"ssl"=>array(
+									"verify_peer"=>false,
+									"verify_peer_name"=>false,
+								),
+							);
+							$json = file_get_contents(get_option('gluu_op_host').'/.well-known/openid-configuration', false, stream_context_create($arrContextOptions));
+
 							$obj = json_decode($json);
 							update_option('gluu_oxd_openid_scops', $obj->scopes_supported);
 						}else{
@@ -701,14 +874,27 @@ class gluu_OpenID_OXD {
 						);
 						update_option('gluu_oxd_config', $config_option);
 						if(!empty(sanitize_text_field($_POST['gluu_new_role']))){
-							update_option('gluu_new_role', $_POST['gluu_new_role']);
+							$role_array = array();
+							foreach ($_POST['gluu_new_role'] as $gluu_new_role){
+								if($gluu_new_role){
+									array_push($role_array,$gluu_new_role);
+								}
+							}
+							update_option('gluu_new_role', $role_array);
 							$config = get_option('gluu_oxd_config');
 							array_push($config['scope'],'permission');
 							update_option('gluu_oxd_config', $config);
 						}
 						$obj = null;
 						if (!empty(get_option('gluu_op_host'))) {
-							$json = file_get_contents(get_option('gluu_op_host') . '/.well-known/openid-configuration');
+							$arrContextOptions=array(
+								"ssl"=>array(
+									"verify_peer"=>false,
+									"verify_peer_name"=>false,
+								),
+							);
+							$json = file_get_contents(get_option('gluu_op_host').'/.well-known/openid-configuration', false, stream_context_create($arrContextOptions));
+
 							$obj = json_decode($json);
 							update_option('gluu_oxd_openid_scops', $obj->scopes_supported);
 						}else{
@@ -726,7 +912,13 @@ class gluu_OpenID_OXD {
 						);
 						update_option('gluu_oxd_config', $config_option);
 						if(!empty(sanitize_text_field($_POST['gluu_new_role']))){
-							update_option('gluu_new_role', $_POST['gluu_new_role']);
+							$role_array = array();
+							foreach ($_POST['gluu_new_role'] as $gluu_new_role){
+								if($gluu_new_role){
+									array_push($role_array,$gluu_new_role);
+								}
+							}
+							update_option('gluu_new_role', $role_array);
 							$config = get_option('gluu_oxd_config');
 							array_push($config['scope'],'permission');
 							update_option('gluu_oxd_config', $config);
@@ -766,7 +958,14 @@ class gluu_OpenID_OXD {
 						if ($register_site->getResponseOxdId()) {
 							update_option('gluu_oxd_id', $register_site->getResponseOxdId());
 							update_option('gluu_op_host', $register_site->getResponseOpHost());
-							$json = file_get_contents(get_option('gluu_op_host').'/.well-known/openid-configuration');
+							$arrContextOptions=array(
+								"ssl"=>array(
+									"verify_peer"=>false,
+									"verify_peer_name"=>false,
+								),
+							);
+							$json = file_get_contents(get_option('gluu_op_host').'/.well-known/openid-configuration', false, stream_context_create($arrContextOptions));
+
 							$obj = json_decode($json);
 							update_option('gluu_oxd_openid_scops', $obj->scopes_supported);
 							$config_option = array(
@@ -781,7 +980,13 @@ class gluu_OpenID_OXD {
 							);
 							update_option('gluu_oxd_config', $config_option);
 							if(!empty(sanitize_text_field($_POST['gluu_new_role']))){
-								update_option('gluu_new_role', $_POST['gluu_new_role']);
+								$role_array = array();
+								foreach ($_POST['gluu_new_role'] as $gluu_new_role){
+									if($gluu_new_role){
+										array_push($role_array,$gluu_new_role);
+									}
+								}
+								update_option('gluu_new_role', $role_array);
 								$config = get_option('gluu_oxd_config');
 								array_push($config['scope'],'permission');
 								update_option('gluu_oxd_config', $config);
@@ -798,6 +1003,7 @@ class gluu_OpenID_OXD {
 							update_option('gluu_oxd_openid_message', 'ERROR: OpenID Provider host is required if you don\'t provide it in oxd-default-site-config.json');
 							$this->gluu_oxd_openid_show_error_message();
 						}
+						wp_redirect(add_query_arg( array('tab' => 'register'), $_SERVER['REQUEST_URI'] ));exit;
 					}
 					else if (isset($_POST['option']) and $_POST['option'] == "oxd_openid_config_info_hidden") {
 						if (gluu_is_oxd_registered()) {
@@ -817,7 +1023,13 @@ class gluu_OpenID_OXD {
 							$oxd_config['scope'] = !empty($_POST['scope']) && isset($_POST['scope']) ? array_map( 'sanitize_text_field', wp_unslash($_POST['scope'])) : $oxd_config['scope'];
 							update_option('gluu_oxd_config', $oxd_config);
 							if(!empty(sanitize_text_field($_POST['gluu_new_role']))){
-								update_option('gluu_new_role', $_POST['gluu_new_role']);
+								$role_array = array();
+								foreach ($_POST['gluu_new_role'] as $gluu_new_role){
+									if($gluu_new_role){
+										array_push($role_array,$gluu_new_role);
+									}
+								}
+								update_option('gluu_new_role', $role_array);
 								$config = get_option('gluu_oxd_config');
 								array_push($config['scope'],'permission');
 								update_option('gluu_oxd_config', $config);
@@ -834,6 +1046,19 @@ class gluu_OpenID_OXD {
 									}
 								}
 								update_option('gluu_oxd_openid_scops', $up_cust_sc);
+
+								$config = get_option('gluu_oxd_config');
+
+								$up_cust_scope =  array();
+								foreach($config['scope'] as $custom_scop){
+									if($custom_scop !=$_POST['delete_scope']){
+										array_push($up_cust_scope,$custom_scop);
+									}
+								}
+								$config['scope'] = $up_cust_scope;
+								update_option('gluu_oxd_config', $config);
+
+
 								if ($check) {
 									echo 1;
 									exit;
@@ -849,7 +1074,14 @@ class gluu_OpenID_OXD {
 								$this->gluu_oxd_openid_show_error_message();
 								return;
 							}
-							$json = file_get_contents(get_option('gluu_op_host').'/.well-known/openid-configuration');
+							$arrContextOptions=array(
+								"ssl"=>array(
+									"verify_peer"=>false,
+									"verify_peer_name"=>false,
+								),
+							);
+							$json = file_get_contents(get_option('gluu_op_host').'/.well-known/openid-configuration', false, stream_context_create($arrContextOptions));
+
 							$obj = json_decode($json);
 							if(!empty($obj->registration_endpoint)) {
 								$update_site_registration = new UpdateSiteRegistration();
@@ -1016,7 +1248,14 @@ class gluu_OpenID_OXD {
 	function gluu_oxd_openid_end_session() {
 		session_start();
 		$config_option = get_option( 'gluu_oxd_config' );
-		$json = file_get_contents(get_option('gluu_op_host').'/.well-known/openid-configuration');
+		$arrContextOptions=array(
+			"ssl"=>array(
+				"verify_peer"=>false,
+				"verify_peer_name"=>false,
+			),
+		);
+		$json = file_get_contents(get_option('gluu_op_host').'/.well-known/openid-configuration', false, stream_context_create($arrContextOptions));
+
 		$obj = json_decode($json);
 		if(time()<(int)$_SESSION['session_in_op']){
 			if(!empty($obj->end_session_endpoint) or get_option('gluu_op_host') == 'https://accounts.google.com'){
@@ -1339,7 +1578,14 @@ function gluu_oxd_openid_login_validate(){
 						'user_url' => $reg_website,
 					)
 				);
-				$json = file_get_contents(get_option('gluu_op_host') . '/.well-known/openid-configuration');
+				$arrContextOptions=array(
+					"ssl"=>array(
+						"verify_peer"=>false,
+						"verify_peer_name"=>false,
+					),
+				);
+				$json = file_get_contents(get_option('gluu_op_host').'/.well-known/openid-configuration', false, stream_context_create($arrContextOptions));
+
 				$obj = json_decode($json);
 				$unless = array("aud","email","email_verified","exp","family_name","given_name","iat","iss","name","picture","sub","nickname");
 				foreach ($obj->claims_supported as $claims_supported){
@@ -1431,7 +1677,7 @@ function gluu_oxd_openid_login_validate(){
 						$bool = True;
 					}
 				}
-				if(!$bool){
+				if(!$bool or get_option('gluu_users_can_register') == 3){
 					echo "<script>
 					alert('You are not authorized for an account on this application. If you think this is an error, please contact your OpenID Connect Provider (OP) admin.');
 					location.href='".site_url()."';
@@ -1451,7 +1697,13 @@ function gluu_oxd_openid_login_validate(){
 				);
 				$user_id 	= wp_insert_user( $userdata);
 				$user	= get_user_by('email', $reg_email );
-				$json = file_get_contents(get_option('gluu_op_host') . '/.well-known/openid-configuration');
+				$arrContextOptions=array(
+					"ssl"=>array(
+						"verify_peer"=>false,
+						"verify_peer_name"=>false,
+					),
+				);
+				$json = file_get_contents(get_option('gluu_op_host').'/.well-known/openid-configuration', false, stream_context_create($arrContextOptions));
 				$obj = json_decode($json);
 				$unless = array("aud","email","email_verified","exp","family_name","given_name","iat","iss","name","picture","sub","nickname");
 				foreach ($obj->claims_supported as $claims_supported){
@@ -1614,7 +1866,13 @@ add_action( 'init', 'gluu_oxd_openid_logout_validate' );
 
 function gluu_additional_profile_fields( $user ) {
 
-	$json = file_get_contents(get_option('gluu_op_host') . '/.well-known/openid-configuration');
+	$arrContextOptions=array(
+		"ssl"=>array(
+			"verify_peer"=>false,
+			"verify_peer_name"=>false,
+		),
+	);
+	$json = file_get_contents(get_option('gluu_op_host').'/.well-known/openid-configuration', false, stream_context_create($arrContextOptions));
 	$obj = json_decode($json);
 	$keys = array();
 	$unless = array("aud","email","email_verified","exp","family_name","given_name","iat","iss","name","picture","sub" ,"nickname");
@@ -1763,7 +2021,13 @@ function gluu_save_profile_fields( $user_id ) {
 		update_user_meta($user_id, 'shipping_email', $_POST['shipping_email']);
 	}
 
-	$json = file_get_contents(get_option('gluu_op_host') . '/.well-known/openid-configuration');
+	$arrContextOptions=array(
+		"ssl"=>array(
+			"verify_peer"=>false,
+			"verify_peer_name"=>false,
+		),
+	);
+	$json = file_get_contents(get_option('gluu_op_host').'/.well-known/openid-configuration', false, stream_context_create($arrContextOptions));
 	$obj = json_decode($json);
 	foreach ($obj->claims_supported as $claims_supported){
 		if ( empty( $_POST[$claims_supported] ) and isset($_POST[$claims_supported])) {
