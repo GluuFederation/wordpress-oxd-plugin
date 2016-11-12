@@ -1,6 +1,6 @@
 === OpenID Connect Single Sign-On (SSO) Plugin By Gluu ===
 Contributors:  gluu
-Donate: 
+Donate: https://www.gluu.org/deploy/
 Tags: openid connect, oauth 2.0, google login, single sign-on, sso, social login, social authentication, strong authentication, two-factor authentication, multi-factor authentication, 2fa, mfa, acr, dynamic enrollment
 Requires at least: 2.0.2
 Tested up to: 4.6
@@ -69,7 +69,7 @@ Read the documentation: https://oxd.gluu.org/docs/plugin/wordpress/
 5. OpenID Connect Configuration
 6. Frontend login page
 
-== FAQs == 
+== Frequently Asked Questions ==
 See the [oxd website](http://oxd.gluu.org).
 
 == Changelog ==

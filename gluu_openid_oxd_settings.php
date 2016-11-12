@@ -189,9 +189,7 @@ class gluu_OpenID_OXD {
 							return;
 						}
 						if (empty($_POST['default_role']) || !empty($_POST['default_role']) && trim($_POST['default_role']) == '') {
-							$this->gluu_oxd_openid_show_error_message();
-							update_option('gluu_oxd_openid_message', '<strong>ERROR</strong>: You must include a role.');
-							return;
+
 						}
 						else {
 							update_option('default_role', wp_unslash($_POST['default_role']));
@@ -624,7 +622,6 @@ class gluu_OpenID_OXD {
 							update_option('gluu_custom_url', '');
 						}
 						if (empty($_POST['default_role']) || !empty($_POST['default_role']) && trim($_POST['default_role']) == '') {
-							update_option('gluu_oxd_openid_message', '<strong>ERROR</strong>: You must include a role.');
 						} else {
 							update_option('default_role', wp_unslash($_POST['default_role']));
 						}
@@ -1564,126 +1561,113 @@ function gluu_oxd_openid_login_validate(){
 		}
 		if( $reg_email ) {
 			if( email_exists( $reg_email ) ) {
-				$user 	= get_user_by('email', $reg_email );
-				$user_id 	= $user->ID;
+				$user = get_user_by('email', $reg_email);
+				$user_id = $user->ID;
 				wp_update_user(
 					array(
 						'ID' => $user_id,
-						'user_login'  =>  $username,
-						'user_nicename'  =>  $reg_nikname,
-						'user_email'    =>  $reg_email,
+						'user_login' => $username,
+						'user_nicename' => $reg_nikname,
+						'user_email' => $reg_email,
 						'display_name' => $reg_display_name,
 						'first_name' => $reg_first_name,
 						'last_name' => $reg_last_name,
 						'user_url' => $reg_website,
 					)
 				);
-				$arrContextOptions=array(
-					"ssl"=>array(
-						"verify_peer"=>false,
-						"verify_peer_name"=>false,
+				$arrContextOptions = array(
+					"ssl" => array(
+						"verify_peer" => false,
+						"verify_peer_name" => false,
 					),
 				);
-				$json = file_get_contents(get_option('gluu_op_host').'/.well-known/openid-configuration', false, stream_context_create($arrContextOptions));
+				$json = file_get_contents(get_option('gluu_op_host') . '/.well-known/openid-configuration', false, stream_context_create($arrContextOptions));
 
 				$obj = json_decode($json);
-				$unless = array("aud","email","email_verified","exp","family_name","given_name","iat","iss","name","picture","sub","nickname");
-				foreach ($obj->claims_supported as $claims_supported){
+				$unless = array("aud", "email", "email_verified", "exp", "family_name", "given_name", "iat", "iss", "name", "picture", "sub", "nickname");
+				foreach ($obj->claims_supported as $claims_supported) {
 					if (!in_array($claims_supported, $unless)) {
-						if($get_tokens_by_code_array->$claims_supported[0]){
-							update_user_meta( $user_id, $claims_supported, $_POST[$claims_supported] );
+						if ($get_tokens_by_code_array->$claims_supported[0]) {
+							update_user_meta($user_id, $claims_supported, $_POST[$claims_supported]);
 						}
 					}
 				}
 
-				if($reg_first_name){
-					update_user_meta( $user_id, 'billing_first_name', $reg_first_name );
+				if ($reg_first_name) {
+					update_user_meta($user_id, 'billing_first_name', $reg_first_name);
 				}
-				if($reg_first_name){
-					update_user_meta( $user_id, 'billing_last_name', $reg_last_name );
+				if ($reg_first_name) {
+					update_user_meta($user_id, 'billing_last_name', $reg_last_name);
 				}
-				if($reg_display_name){
-					update_user_meta( $user_id, 'billing_company', $reg_display_name );
+				if ($reg_display_name) {
+					update_user_meta($user_id, 'billing_company', $reg_display_name);
 				}
-				if($reg_street_address){
-					update_user_meta( $user_id, 'billing_address_1', $reg_street_address );
+				if ($reg_street_address) {
+					update_user_meta($user_id, 'billing_address_1', $reg_street_address);
 				}
-				if($reg_street_address_2){
-					update_user_meta( $user_id, 'billing_address_2', $reg_street_address_2 );
+				if ($reg_street_address_2) {
+					update_user_meta($user_id, 'billing_address_2', $reg_street_address_2);
 				}
-				if($reg_city){
-					update_user_meta( $user_id, 'billing_city', $reg_city );
+				if ($reg_city) {
+					update_user_meta($user_id, 'billing_city', $reg_city);
 				}
-				if($reg_postal_code){
-					update_user_meta( $user_id, 'billing_postcode', $reg_postal_code );
+				if ($reg_postal_code) {
+					update_user_meta($user_id, 'billing_postcode', $reg_postal_code);
 				}
-				if($reg_country){
-					update_user_meta( $user_id, 'billing_country', $reg_country );
+				if ($reg_country) {
+					update_user_meta($user_id, 'billing_country', $reg_country);
 				}
-				if($reg_city){
-					update_user_meta( $user_id, 'billing_state', $reg_city );
+				if ($reg_city) {
+					update_user_meta($user_id, 'billing_state', $reg_city);
 				}
-				if($reg_home_phone_number){
-					update_user_meta( $user_id, 'billing_phone', $reg_home_phone_number );
+				if ($reg_home_phone_number) {
+					update_user_meta($user_id, 'billing_phone', $reg_home_phone_number);
 				}
-				if($reg_email){
-					update_user_meta( $user_id, 'billing_email', $reg_email );
+				if ($reg_email) {
+					update_user_meta($user_id, 'billing_email', $reg_email);
 				}
-				if($reg_first_name){
-					update_user_meta( $user_id, 'shipping_first_name', $reg_first_name );
+				if ($reg_first_name) {
+					update_user_meta($user_id, 'shipping_first_name', $reg_first_name);
 				}
-				if($reg_first_name){
-					update_user_meta( $user_id, 'shipping_last_name', $reg_last_name );
+				if ($reg_first_name) {
+					update_user_meta($user_id, 'shipping_last_name', $reg_last_name);
 				}
-				if($reg_display_name){
-					update_user_meta( $user_id, 'shipping_company', $reg_display_name );
+				if ($reg_display_name) {
+					update_user_meta($user_id, 'shipping_company', $reg_display_name);
 				}
-				if($reg_street_address){
-					update_user_meta( $user_id, 'shipping_address_1', $reg_street_address );
+				if ($reg_street_address) {
+					update_user_meta($user_id, 'shipping_address_1', $reg_street_address);
 				}
-				if($reg_street_address_2){
-					update_user_meta( $user_id, 'shipping_address_2', $reg_street_address_2 );
+				if ($reg_street_address_2) {
+					update_user_meta($user_id, 'shipping_address_2', $reg_street_address_2);
 				}
-				if($reg_city){
-					update_user_meta( $user_id, 'shipping_city', $reg_city );
+				if ($reg_city) {
+					update_user_meta($user_id, 'shipping_city', $reg_city);
 				}
-				if($reg_postal_code){
-					update_user_meta( $user_id, 'shipping_postcode', $reg_postal_code );
+				if ($reg_postal_code) {
+					update_user_meta($user_id, 'shipping_postcode', $reg_postal_code);
 				}
-				if($reg_country){
-					update_user_meta( $user_id, 'shipping_country', $reg_country );
+				if ($reg_country) {
+					update_user_meta($user_id, 'shipping_country', $reg_country);
 				}
-				if($reg_city){
-					update_user_meta( $user_id, 'shipping_state', $reg_city );
+				if ($reg_city) {
+					update_user_meta($user_id, 'shipping_state', $reg_city);
 				}
-				if($reg_home_phone_number){
-					update_user_meta( $user_id, 'shipping_phone', $reg_home_phone_number );
+				if ($reg_home_phone_number) {
+					update_user_meta($user_id, 'shipping_phone', $reg_home_phone_number);
 				}
-				if($reg_email){
-					update_user_meta( $user_id, 'shipping_email', $reg_email );
+				if ($reg_email) {
+					update_user_meta($user_id, 'shipping_email', $reg_email);
 				}
-				do_action( 'wp_login', $user->user_login, $user );
-				if(get_option('gluu_oxdOpenId_gluu_login_avatar') && isset($reg_avatar))
+				do_action('wp_login', $user->user_login, $user);
+				if (get_option('gluu_oxdOpenId_gluu_login_avatar') && isset($reg_avatar))
 					update_user_meta($user_id, 'oxdOpenId_user_avatar', $reg_avatar);
-				do_action( 'wp_login', $user->user_login, $user );
-				wp_set_auth_cookie( $user_id, true );
+				do_action('wp_login', $user->user_login, $user);
+				wp_set_auth_cookie($user_id, true);
 			}
 			else {
 				$bool = true;
-				if(get_option('gluu_users_can_register') == 2 and !empty(get_option('gluu_new_role'))){
-					if (!in_array($reg_user_permission, get_option('gluu_new_role'))) {
-						$bool = false;
-					}else{
-						$bool = True;
-					}
-				}
-				if(!$bool or get_option('gluu_users_can_register') == 3){
-					echo "<script>
-					alert('You are not authorized for an account on this application. If you think this is an error, please contact your OpenID Connect Provider (OP) admin.');
-					location.href='".site_url()."';
-				 </script>";
-					exit;
-				}
+
 				$random_password 	= wp_generate_password( 10, false );
 				$userdata = array(
 					'user_login'  =>  $username,

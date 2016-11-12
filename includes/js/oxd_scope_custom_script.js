@@ -5,14 +5,11 @@ jQuery(function() {
     var scntDiv = jQuery('#p_scents');
     var striped = jQuery('.table-striped');
     var k = jQuery('#p_scents p').size() + 1;
-
-
-
     var roleDiv = jQuery('#p_role');
     var i = jQuery('#p_role p').size() + 1;
 
     jQuery('#add_new_role').live('click', function() {
-        jQuery('<p><input type="text" name="gluu_new_role[]" placeholder="Input role name" style="margin-right: 3px"/><a href="#" class="btn btn-xs" id="add_new_role" ><span class="glyphicon glyphicon-plus"></span></a> <a href="#" class="btn btn-xs" id="remRole" ><span class="glyphicon glyphicon-minus"></span></a></p>').appendTo(roleDiv);
+        jQuery('<p><input type="text" required class="form-control" style="width: 20% !important; margin-right: 3px; display: inline" name="gluu_new_role[]" placeholder="Input role name"/><a href="#" class="btn btn-xs" id="add_new_role" ><span class="glyphicon glyphicon-plus"></span></a> <a href="#" class="btn btn-xs" id="remRole" ><span class="glyphicon glyphicon-minus"></span></a></p>').appendTo(roleDiv);
         i++;
         return false;
     });
@@ -71,77 +68,77 @@ function delete_custom_script(val, nonce){
 }
 
 function add_scope_for_delete(nonce) {
-        var striped = jQuery('.table-striped');
-        var k = jQuery('#p_scents p').size() + 1;
-        var new_scope_field = jQuery('#new_scope_field').val();
-        var m = true;
-        if(new_scope_field){
-            jQuery("input[name='scope[]']").each(function(){
-                // get name of input
-                var value =  jQuery(this).attr("value");
-                if(value == new_scope_field){
-                    m = false;
-                }
-            });
-            if(m){
-                jQuery('<tr >' +
-                        '<td style="padding: 0px !important;">' +
-                        '   <p  id="'+new_scope_field+'">' +
-                        '     <input type="checkbox" name="scope[]" id="new_'+new_scope_field+'" value="'+new_scope_field+'"  /> &nbsp;'+new_scope_field+
-                        '   </p>' +
-                        '</td>' +
-                        '<td style="padding: 0px !important; ">' +
-                            '   <a href="#scop_section" class="btn btn-danger btn-xs" style="margin: 5px; float: right" onclick="delete_scopes(\''+new_scope_field+'\',\''+nonce+'\')" >' +
-                                '<span class="glyphicon glyphicon-trash"></span>' +
-                                '</a>' +
-                        '</td>' +
-                        '</tr>').appendTo(striped);
-                jQuery('#new_scope_field').val('');
-
-                jQuery.ajax({
-                    url: window.location,
-                    type: 'POST',
-                    data:{option:'oxd_openid_config_new_scope', custom_nonce:nonce, new_value_scope:new_scope_field},
-                    success: function(result){
-                    }});
-                jQuery("#new_"+new_scope_field).change(
-                    function(){
-                        var form=$("#scpe_update");
-                        if (jQuery(this).is(':checked')) {
-                            jQuery.ajax({
-                                url: window.location,
-                                type: 'POST',
-                                data:form.serialize(),
-                                success: function(result){
-                                    if(result){
-                                        return false;
-                                    }
-                                }});
-                        }else{
-                            jQuery.ajax({
-                                url: window.location,
-                                type: 'POST',
-                                data:form.serialize(),
-                                success: function(result){
-                                    if(result){
-                                        return false;
-                                    }
-                                }});
-                        }
-                    });
-
-                return false;
+    var striped = jQuery('.table-striped');
+    var k = jQuery('#p_scents p').size() + 1;
+    var new_scope_field = jQuery('#new_scope_field').val();
+    var m = true;
+    if(new_scope_field){
+        jQuery("input[name='scope[]']").each(function(){
+            // get name of input
+            var value =  jQuery(this).attr("value");
+            if(value == new_scope_field){
+                m = false;
             }
-            else{
-                alert('The scope named '+new_scope_field+' is exist!');
-                jQuery('#new_scope_field').val('');
-                return false;
-            }
-        }else{
-            alert('Please input scope name!');
+        });
+        if(m){
+            jQuery('<tr >' +
+                '<td style="padding: 0px !important;">' +
+                '   <p  id="'+new_scope_field+'">' +
+                '     <input type="checkbox" name="scope[]" id="new_'+new_scope_field+'" value="'+new_scope_field+'"  /> &nbsp;'+new_scope_field+
+                '   </p>' +
+                '</td>' +
+                '<td style="padding: 0px !important; ">' +
+                '   <a href="#scop_section" class="btn btn-danger btn-xs" style="margin: 5px; float: right" onclick="delete_scopes(\''+new_scope_field+'\',\''+nonce+'\')" >' +
+                '<span class="glyphicon glyphicon-trash"></span>' +
+                '</a>' +
+                '</td>' +
+                '</tr>').appendTo(striped);
+            jQuery('#new_scope_field').val('');
+
+            jQuery.ajax({
+                url: window.location,
+                type: 'POST',
+                data:{option:'oxd_openid_config_new_scope', custom_nonce:nonce, new_value_scope:new_scope_field},
+                success: function(result){
+                }});
+            jQuery("#new_"+new_scope_field).change(
+                function(){
+                    var form=$("#scpe_update");
+                    if (jQuery(this).is(':checked')) {
+                        jQuery.ajax({
+                            url: window.location,
+                            type: 'POST',
+                            data:form.serialize(),
+                            success: function(result){
+                                if(result){
+                                    return false;
+                                }
+                            }});
+                    }else{
+                        jQuery.ajax({
+                            url: window.location,
+                            type: 'POST',
+                            data:form.serialize(),
+                            success: function(result){
+                                if(result){
+                                    return false;
+                                }
+                            }});
+                    }
+                });
+
+            return false;
+        }
+        else{
+            alert('The scope named '+new_scope_field+' is exist!');
             jQuery('#new_scope_field').val('');
             return false;
         }
+    }else{
+        alert('Please input scope name!');
+        jQuery('#new_scope_field').val('');
+        return false;
+    }
 }
 
 function delete_scopes(val, nonce){

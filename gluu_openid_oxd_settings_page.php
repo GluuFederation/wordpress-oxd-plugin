@@ -26,68 +26,97 @@ function gluu_oxd_register_openid() {
     ?>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script>
+        jQuery(document).ready(function(){
+            jQuery('[data-toggle="tooltip"]').tooltip();
+        });
+    </script>
     <script type="application/javascript">
         jQuery(document ).ready(function() {
             <?php
-                if(get_option('gluu_users_can_register') == 2){
-                    ?>
+            if(get_option('gluu_users_can_register') == 2){
+            ?>
+            jQuery("#p_role").children().prop('disabled',false);
+            jQuery("#p_role *").prop('disabled',false);
+            <?php
+            }else if(get_option('gluu_users_can_register') == 3){
+            ?>
+            jQuery("#p_role").children().prop('disabled',true);
+            jQuery("#p_role *").prop('disabled',true);
+            jQuery("input[name='gluu_new_role[]']").each(function(){
+                var striped = jQuery('#p_role');
+                var value =  jQuery(this).attr("value");
+                jQuery('<p><input type="hidden" name="gluu_new_role[]"  value= "'+value+'"/></p>').appendTo(striped);
+            });
+            jQuery("#default_role").prop('disabled',true);
+            <?php
+            }else{
+            ?>
+            jQuery("#p_role").children().prop('disabled',true);
+            jQuery("#p_role *").prop('disabled',true);
+            jQuery("input[name='gluu_new_role[]']").each(function(){
+                var striped = jQuery('#p_role');
+                var value =  jQuery(this).attr("value");
+                jQuery('<p><input type="hidden" name="gluu_new_role[]"  value= "'+value+'"/></p>').appendTo(striped);
+            });
+            <?php
+            }
+            ?>
+            jQuery('input:radio[name="gluu_users_can_register"]').change(
+                function(){
+                    if(jQuery(this).is(':checked') && jQuery(this).val() == '2'){
                         jQuery("#p_role").children().prop('disabled',false);
                         jQuery("#p_role *").prop('disabled',false);
-                    <?php
-                }else{
-                    ?>
-                    jQuery("#p_role").children().prop('disabled',true);
-                    jQuery("#p_role *").prop('disabled',true);
-                    jQuery("input[name='gluu_new_role[]']").each(function(){
-                        var striped = jQuery('#p_role');
-                        var value =  jQuery(this).attr("value");
-                        jQuery('<p><input type="hidden" name="gluu_new_role[]"  value= "'+value+'"/></p>').appendTo(striped);
-                    });
-                    <?php
-                }
-            ?>
-                jQuery('input:radio[name="gluu_users_can_register"]').change(
-                function(){
-                     if(jQuery(this).is(':checked') && jQuery(this).val() == '2'){
-                         jQuery("#p_role").children().prop('disabled',false);
-                         jQuery("#p_role *").prop('disabled',false);
-                         jQuery("input[type='hidden'][name='gluu_new_role[]']").remove();
+                        jQuery("input[type='hidden'][name='gluu_new_role[]']").remove();
+                        jQuery("#default_role").prop('disabled',false);
+                    }
+                    else if(jQuery(this).is(':checked') && jQuery(this).val() == '3'){
+                        jQuery("#p_role").children().prop('disabled',true);
+                        jQuery("#p_role *").prop('disabled',true);
+                        jQuery("input[type='hidden'][name='gluu_new_role[]']").remove();
+                        jQuery("input[name='gluu_new_role[]']").each(function(){
+                            var striped = jQuery('#p_role');
+                            var value =  jQuery(this).attr("value");
+                            jQuery('<p><input type="hidden" name="gluu_new_role[]"  value= "'+value+'"/></p>').appendTo(striped);
+                        });
+                        jQuery("#default_role").prop('disabled',true);
                     }else{
-                         jQuery("#p_role").children().prop('disabled',true);
-                         jQuery("#p_role *").prop('disabled',true);
-                         jQuery("input[type='hidden'][name='gluu_new_role[]']").remove();
-                         jQuery("input[name='gluu_new_role[]']").each(function(){
-                             var striped = jQuery('#p_role');
-                             var value =  jQuery(this).attr("value");
-                             jQuery('<p><input type="hidden" name="gluu_new_role[]"  value= "'+value+'"/></p>').appendTo(striped);
-                         });
+                        jQuery("#p_role").children().prop('disabled',true);
+                        jQuery("#p_role *").prop('disabled',true);
+                        jQuery("input[type='hidden'][name='gluu_new_role[]']").remove();
+                        jQuery("input[name='gluu_new_role[]']").each(function(){
+                            var striped = jQuery('#p_role');
+                            var value =  jQuery(this).attr("value");
+                            jQuery('<p><input type="hidden" name="gluu_new_role[]"  value= "'+value+'"/></p>').appendTo(striped);
+                        });
+                        jQuery("#default_role").prop('disabled',false);
                     }
                 });
-                jQuery("input[name='scope[]']").change(
-                    function(){
-                        var form=$("#scpe_update");
-                        if (jQuery(this).is(':checked')) {
-                            jQuery.ajax({
-                                url: window.location,
-                                type: 'POST',
-                                data:form.serialize(),
-                                success: function(result){
-                                    if(result){
-                                        return false;
-                                    }
-                                }});
-                        }else{
-                            jQuery.ajax({
-                                url: window.location,
-                                type: 'POST',
-                                data:form.serialize(),
-                                success: function(result){
-                                    if(result){
-                                        return false;
-                                    }
-                                }});
-                        }
-                    });
+            jQuery("input[name='scope[]']").change(
+                function(){
+                    var form=$("#scpe_update");
+                    if (jQuery(this).is(':checked')) {
+                        jQuery.ajax({
+                            url: window.location,
+                            type: 'POST',
+                            data:form.serialize(),
+                            success: function(result){
+                                if(result){
+                                    return false;
+                                }
+                            }});
+                    }else{
+                        jQuery.ajax({
+                            url: window.location,
+                            type: 'POST',
+                            data:form.serialize(),
+                            success: function(result){
+                                if(result){
+                                    return false;
+                                }
+                            }});
+                    }
+                });
 
         });
     </script>
@@ -103,7 +132,7 @@ function gluu_oxd_register_openid() {
         <h2 class="nav-tab-wrapper">
             <a class="nav-tab nav-tab1 <?php  if($active_tab == 'register' or $active_tab == 'register_edit')  echo 'nav-tab-active nav-tab-active1'; ?>" href="<?php echo add_query_arg( array('tab' => 'register'), $_SERVER['REQUEST_URI'] ); ?>">General</a>
             <?php if ( !gluu_is_oxd_registered()) {?>
-            <button class="nav-tab nav-tab1 not_checked_button" disabled >OpenID Connect Configuration</button>
+                <button class="nav-tab nav-tab1 not_checked_button" disabled >OpenID Connect Configuration</button>
             <?php }else {?>
                 <a class="nav-tab nav-tab1 <?php echo $active_tab == 'login_config' ? 'nav-tab-active nav-tab-active1' : ''; ?>" href="<?php echo add_query_arg( array('tab' => 'login_config'), $_SERVER['REQUEST_URI'] ); ?>">OpenID Connect Configuration</a>
             <?php }?>
@@ -174,12 +203,6 @@ function gluu_oxd_openid_show_client_page($custom_nonce) {
                 <h3 style="padding-left: 10px;padding-bottom: 20px; border-bottom: 2px solid black; width: 60% "> Server Settings</h3>
                 <table class="form-table" >
                     <tr>
-                        <td style="width: 300px;"><label for="default_role"><b><font color="#FF0000">*</font>New User Default Role:</b></label></td>
-                        <td>
-                            <select class="form-control" name="default_role" id="default_role"><?php wp_dropdown_roles( get_option('default_role') ); ?></select>
-                        </td>
-                    </tr>
-                    <tr>
                         <td style="width: 300px;"><b>URI of the OpenID Provider:</b></td>
                         <td>
                             <input class="oxd_openid_table_textbox form-control" type="url" name="gluu_server_url"  placeholder="Enter URI of the OpenID Provider" value="<?php if(get_option('gluu_op_host')){ echo get_option('gluu_op_host');} ?>" /></td>
@@ -214,7 +237,11 @@ function gluu_oxd_openid_show_client_page($custom_nonce) {
                 </table>
             </div>
             <div style="margin-left: 20px">
-                <h3 style="padding-left: 10px;padding-bottom: 20px; border-bottom: 2px solid black; width: 60% ">Enrollment</h3>
+                <h3 style="padding-left: 10px;padding-bottom: 20px; border-bottom: 2px solid black; width: 60% ">Enrollment
+                    <a data-toggle="tooltip" class="tooltipLink" data-original-title="Register new users when they login at an external identity provider. If you disable automatic registration, new users will need to be manually created">
+                        <span class="glyphicon glyphicon-info-sign"></span>
+                    </a>
+                </h3>
                 <div style="padding-left: 10px">
                     <p><label ><input name="gluu_users_can_register" type="radio" id="gluu_users_can_register_1" <?php if(get_option('gluu_users_can_register')==1){ echo "checked";} ?> value="1" style="margin-right: 3px"> Automatically register any user with an account in the OpenID Provider</label></p>
                 </div>
@@ -230,8 +257,8 @@ function gluu_oxd_openid_show_client_page($custom_nonce) {
                                         ?>
                                         <p>
                                             <input class="form-control " type="text" name="gluu_new_role[]"  required style="width: 20% !important; display: inline"
-                                                    placeholder="Input role name"
-                                                    value="<?php echo $gluu_new_role; ?>"/>
+                                                   placeholder="Input role name"
+                                                   value="<?php echo $gluu_new_role; ?>"/>
                                             <a href="#" class="btn btn-xs" id="add_new_role" ><span class="glyphicon glyphicon-plus"></span></a>
                                         </p>
                                         <?php
@@ -239,8 +266,8 @@ function gluu_oxd_openid_show_client_page($custom_nonce) {
                                         ?>
                                         <p>
                                             <input class="form-control " type="text" name="gluu_new_role[]"  required style="width: 20% !important; display: inline"
-                                                    placeholder="Input role name"
-                                                    value="<?php echo $gluu_new_role; ?>"/>
+                                                   placeholder="Input role name"
+                                                   value="<?php echo $gluu_new_role; ?>"/>
                                             <a href="#" class="btn btn-xs" id="add_new_role" ><span class="glyphicon glyphicon-plus"></span></a>
                                             <a href="#" class="btn btn-xs" id="remRole" ><span class="glyphicon glyphicon-minus"></span></a>
                                         </p>
@@ -267,6 +294,12 @@ function gluu_oxd_openid_show_client_page($custom_nonce) {
                     </p>
                 </div>
                 <table class="form-table" >
+                    <tr>
+                        <td style="width: 300px;"><label for="default_role"><b>New User Default Role:</b></label></td>
+                        <td>
+                            <select class="form-control" name="default_role" id="default_role"><?php wp_dropdown_roles( get_option('default_role') ); ?></select>
+                        </td>
+                    </tr>
                     <tr>
                         <td>
                             <input type="submit" name="submit" value="Next" style="float: left; margin-right: 15px " class="button button-primary button-large" />
@@ -300,12 +333,6 @@ function gluu_oxd_openid_show_new_registration_page($custom_nonce) {
                 <h3 style="padding-left: 10px;padding-bottom: 20px; border-bottom: 2px solid black; width: 60% "> Server Settings</h3>
                 <table class="form-table">
                     <tr>
-                        <td  style="width: 300px;"><label for="default_role"><b><font color="#FF0000">*</font>New User Default Role:</b></label></td>
-                        <td>
-                            <select class="form-control" name="default_role" id="default_role"><?php wp_dropdown_roles( get_option('default_role') ); ?></select>
-                        </td>
-                    </tr>
-                    <tr>
                         <td  style="width: 300px;"><b>URI of the OpenID Provider:</b></td>
                         <td><input class="oxd_openid_table_textbox form-control" type="url" name="gluu_server_url" placeholder="Enter URI of the OpenID Provider" value="<?php if(get_option('gluu_op_host')){ echo get_option('gluu_op_host');} ?>" /></td>
                     </tr>
@@ -323,7 +350,10 @@ function gluu_oxd_openid_show_new_registration_page($custom_nonce) {
             </div>
             <hr>
             <div style="margin-left: 20px">
-                <h3 style="padding-left: 10px;padding-bottom: 20px; border-bottom: 2px solid black; width: 60% ">Enrollment</h3>
+                <h3 style="padding-left: 10px;padding-bottom: 20px; border-bottom: 2px solid black; width: 60% ">Enrollment
+                    <a data-toggle="tooltip" class="tooltipLink" data-original-title="Register new users when they login at an external identity provider. If you disable automatic registration, new users will need to be manually created">
+                        <span class="glyphicon glyphicon-info-sign"></span>
+                    </a></h3>
                 <div style="padding-left: 10px;">
                     <p><label><input name="gluu_users_can_register" type="radio" id="gluu_users_can_register" <?php if(get_option('gluu_users_can_register')==1){ echo "checked";} ?> value="1" style="margin-right: 3px"> Automatically register any user with an account in the OpenID Provider</label></p>
                 </div>
@@ -339,8 +369,8 @@ function gluu_oxd_openid_show_new_registration_page($custom_nonce) {
                                         ?>
                                         <p>
                                             <input class="form-control " type="text" name="gluu_new_role[]"  required style="width: 20% !important; display: inline"
-                                                    placeholder="Input role name"
-                                                    value="<?php echo $gluu_new_role; ?>"/>
+                                                   placeholder="Input role name"
+                                                   value="<?php echo $gluu_new_role; ?>"/>
                                             <a href="#" class="btn btn-xs" id="add_new_role" ><span class="glyphicon glyphicon-plus"></span></a>
                                         </p>
                                         <?php
@@ -376,6 +406,12 @@ function gluu_oxd_openid_show_new_registration_page($custom_nonce) {
                 </div>
                 <table class="form-table">
                     <tr>
+                        <td  style="width: 300px;"><label for="default_role"><b>New User Default Role:</b></label></td>
+                        <td>
+                            <select class="form-control" name="default_role" id="default_role"><?php wp_dropdown_roles( get_option('default_role') ); ?></select>
+                        </td>
+                    </tr>
+                    <tr>
                         <td>
                             <input type="submit" name="submit" value="Register" style="float: left; margin-right: 15px " class="button button-primary button-large" />
                             <?php if(get_option('gluu_op_host')){?>
@@ -384,7 +420,6 @@ function gluu_oxd_openid_show_new_registration_page($custom_nonce) {
                         </td>
                         <td>
                         </td>
-
                     </tr>
                 </table>
             </div>
@@ -411,13 +446,6 @@ function gluu_oxd_openid_show_new_registration__restet_page($custom_nonce) {
                 <div>
                     <h3 style="margin-left: 35px;padding-left: 10px;padding-bottom: 20px; border-bottom: 2px solid black; width: 60% "> Server Settings</h3>
                     <table style="margin-left: 30px" class="form-table">
-                        <tr>
-                            <td   style="width: 300px;"><label for="default_role"><b>New User Default Role:</b></label></td>
-                            <td>
-                                <select  class="form-control" disabled name="default_role" id="default_role"><?php wp_dropdown_roles( get_option('default_role') ); ?></select>
-
-                            </td>
-                        </tr>
                         <tr>
                             <td  style="width: 300px;"><b>URI of the OpenID Provider:</b></td>
                             <td><input class="oxd_openid_table_textbox form-control" disabled type="url" name="gluu_server_url" placeholder="Enter URI of the OpenID Provider" value="<?php if(get_option('gluu_op_host')){ echo get_option('gluu_op_host');} ?>" /></td>
@@ -455,7 +483,11 @@ function gluu_oxd_openid_show_new_registration__restet_page($custom_nonce) {
                     </table>
                 </div>
                 <div>
-                    <h3 style="margin-left: 35px; padding-left: 10px;padding-bottom: 20px; border-bottom: 2px solid black; width: 60% "> Enrollment</h3>
+                    <h3 style="margin-left: 35px; padding-left: 10px;padding-bottom: 20px; border-bottom: 2px solid black; width: 60% ">Enrollment
+                        <a data-toggle="tooltip" class="tooltipLink" data-original-title="Register new users when they login at an external identity provider. If you disable automatic registration, new users will need to be manually created">
+                            <span class="glyphicon glyphicon-info-sign"></span>
+                        </a>
+                    </h3>
                     <div style="margin-left: 35px; margin-top: 20px">
                         <p><label ><input name="gluu_users_can_register" disabled type="radio" id="gluu_users_can_register_1" <?php if(get_option('gluu_users_can_register')==1){ echo "checked";} ?> value="1" style="margin-right: 3px"> Automatically register any user with an account in the OpenID Provider</label></p>
                     </div>
@@ -509,6 +541,12 @@ function gluu_oxd_openid_show_new_registration__restet_page($custom_nonce) {
                     </div>
                     <table style="margin-left: 30px" class="form-table">
                         <tr>
+                            <td  style="width: 300px;"><label for="default_role"><b>New User Default Role:</b></label></td>
+                            <td>
+                                <select class="form-control" disabled name="default_role" id="default_role"><?php wp_dropdown_roles( get_option('default_role') ); ?></select>
+                            </td>
+                        </tr>
+                        <tr>
                             <td>
                                 <a class="button button-primary button-large" style="float: left" href="<?php echo add_query_arg( array('tab' => 'register_edit'), $_SERVER['REQUEST_URI'] ); ?>">Edit</a>
                                 <input type="submit" onclick="return confirm('Are you sure that you want to remove this OpenID Connect provider? Users will no longer be able to authenticate against this OP.')" name="submit" style="float: left; margin-left: 20px" value="Delete" <?php if(!gluu_is_oxd_registered()) echo 'disabled'?> class="button button-primary button-large" />
@@ -530,8 +568,8 @@ function gluu_oxd_openid_edit_page($custom_nonce) {
     ?>
     <script type="application/javascript">
         /*window.onbeforeunload = function(){
-            return "You may have unsaved changes. Are you sure you want to leave this page?"
-        }*/
+         return "You may have unsaved changes. Are you sure you want to leave this page?"
+         }*/
         var formSubmitting = false;
         var setFormSubmitting = function() { formSubmitting = true; };
         var edit_cancel_function = function() { formSubmitting = true; };
@@ -560,13 +598,6 @@ function gluu_oxd_openid_edit_page($custom_nonce) {
                 <div>
                     <h3 style="margin-left: 30px;padding-left: 10px;padding-bottom: 20px; border-bottom: 2px solid black; width: 60% ">Server Settings</h3>
                     <table style="margin-left: 35px;" class="form-table">
-
-                        <tr>
-                            <td style="width: 300px;"><label for="default_role"><b>New User Default Role:</b></label></td>
-                            <td>
-                                <select  class="form-control" name="default_role" id="default_role"><?php wp_dropdown_roles( get_option('default_role') ); ?></select>
-                            </td>
-                        </tr>
                         <tr>
                             <td  style="width: 300px;"><b>URI of the OpenID Provider:</b></td>
                             <td><input class="oxd_openid_table_textbox form-control" disabled type="url" name="gluu_server_url"  placeholder="Enter URI of the OpenID Provider" value="<?php if(get_option('gluu_op_host')){ echo get_option('gluu_op_host');} ?>" /></td>
@@ -606,7 +637,11 @@ function gluu_oxd_openid_edit_page($custom_nonce) {
                     </table>
                 </div>
                 <div>
-                    <h3 style="margin-left: 30px;padding-left: 10px;padding-bottom: 20px; border-bottom: 2px solid black; width: 60% ">Enrollment</h3>
+                    <h3 style="margin-left: 30px;padding-left: 10px;padding-bottom: 20px; border-bottom: 2px solid black; width: 60% ">Enrollment
+                        <a data-toggle="tooltip" class="tooltipLink" data-original-title="Register new users when they login at an external identity provider. If you disable automatic registration, new users will need to be manually created">
+                            <span class="glyphicon glyphicon-info-sign"></span>
+                        </a>
+                    </h3>
                     <div style="margin-left: 43px; ">
                         <p>
                             <label >
@@ -635,8 +670,8 @@ function gluu_oxd_openid_edit_page($custom_nonce) {
                                         ?>
                                         <p>
                                             <input class="form-control" type="text" name="gluu_new_role[]"  required style="width: 20% !important; display: inline"
-                                                    placeholder="Input role name"
-                                                    value="<?php echo $gluu_new_role; ?>"/>
+                                                   placeholder="Input role name"
+                                                   value="<?php echo $gluu_new_role; ?>"/>
                                             <a href="#" class="btn btn-xs" id="add_new_role" ><span class="glyphicon glyphicon-plus"></span></a>
                                         </p>
                                         <?php
@@ -670,6 +705,12 @@ function gluu_oxd_openid_edit_page($custom_nonce) {
                         </p>
                     </div>
                     <table style="margin-left: 35px;" class="form-table">
+                        <tr>
+                            <td style="width: 300px;"><label for="default_role"><b>New User Default Role:</b></label></td>
+                            <td>
+                                <select  class="form-control" name="default_role" id="default_role"><?php wp_dropdown_roles( get_option('default_role') ); ?></select>
+                            </td>
+                        </tr>
                         <tr>
                             <td>
                                 <input type="submit" name="submit" value="Save" style="float: left; margin-right: 20px" class="button button-primary button-large" />
@@ -755,22 +796,21 @@ function gluu_oxd_openid_edit_client_page($custom_nonce) {
                     </p>
                 </div>
                 <table style="margin-left: 35px" class="form-table">
-
-                <tr>
-                    <td style="width: 300px;"> <label for="default_role"><b>New User Default Role:</b></label></td>
-                    <td>
-                        <select  class="form-control" name="default_role" id="default_role"><?php wp_dropdown_roles( get_option('default_role') ); ?></select>
-                        <br/><br/>
-                    </td>
-                </tr>
-                <tr>
-                    <td style="width: 300px;"><b>URI of the OpenID Provider:</b></td>
-                    <td><input class="oxd_openid_table_textbox form-control" disabled type="url" name="gluu_server_url"  placeholder="Enter URI of the OpenID Provider" value="<?php if(get_option('gluu_op_host')){ echo get_option('gluu_op_host');} ?>" /></td>
-                </tr>
-                <tr>
-                    <td><label for="gluu_custom_url"><b>Custom URI after logout:</b></label></td>
-                    <td><input class="oxd_openid_table_textbox form-control"  type="url" name="gluu_custom_url"  placeholder="Enter custom URI after logout" value="<?php if(get_option('gluu_custom_url')){ echo get_option('gluu_custom_url');} ?>" /></td>
-                </tr>
+                    <tr>
+                        <td style="width: 300px;"> <label for="default_role"><b>New User Default Role:</b></label></td>
+                        <td>
+                            <select  class="form-control" name="default_role" id="default_role"><?php wp_dropdown_roles( get_option('default_role') ); ?></select>
+                            <br/><br/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width: 300px;"><b>URI of the OpenID Provider:</b></td>
+                        <td><input class="oxd_openid_table_textbox form-control" disabled type="url" name="gluu_server_url"  placeholder="Enter URI of the OpenID Provider" value="<?php if(get_option('gluu_op_host')){ echo get_option('gluu_op_host');} ?>" /></td>
+                    </tr>
+                    <tr>
+                        <td><label for="gluu_custom_url"><b>Custom URI after logout:</b></label></td>
+                        <td><input class="oxd_openid_table_textbox form-control"  type="url" name="gluu_custom_url"  placeholder="Enter custom URI after logout" value="<?php if(get_option('gluu_custom_url')){ echo get_option('gluu_custom_url');} ?>" /></td>
+                    </tr>
                     <tr>
                         <td style="width: 300px;"><b>Client ID:</b></td>
                         <td><input  class="form-control oxd_openid_table_textbox"  type="text" name="gluu_client_id"  placeholder="Enter OpenID Provider client ID" value="<?php if($gluu_oxd_config['gluu_client_id']){ echo $gluu_oxd_config['gluu_client_id'];} ?>" /></td>
@@ -779,25 +819,24 @@ function gluu_oxd_openid_edit_client_page($custom_nonce) {
                         <td style="width: 300px;"><b>Client Secret:</b></td>
                         <td><input class="form-control oxd_openid_table_textbox"  type="text" name="gluu_client_secret" placeholder="Enter OpenID Provider client secret" value="<?php if($gluu_oxd_config['gluu_client_secret']){ echo $gluu_oxd_config['gluu_client_secret'];} ?>" /></td>
                     </tr>
-
-                <tr>
-                    <td style="width: 300px;"><b>oxd port:</b></td>
-                    <td>
-                        <br/>
-                        <input class="form-control oxd_openid_table_textbox"  required type="number" name="oxd_host_port" value="<?php if($gluu_oxd_config['oxd_host_port']){ echo $gluu_oxd_config['oxd_host_port'];}else{ echo 8099;} ?>" placeholder="Please enter free port (for example 8099). (Min. number 0, Max. number 65535)" />
-                    </td>
-                </tr>
-                <tr>
-                    <td style="width: 300px;"><b>oxd ID:</b></td>
-                    <td>
-                        <input class="form-control oxd_openid_table_textbox" <?php echo 'disabled'?> type="text" name="oxd_id" value="<?php echo get_option('gluu_oxd_id'); ?>" /><br/>
-                    </td>
-                </tr>
-                <tr>
-                    <td style="width: 300px;"> <input type="submit" style="float: right" name="submit" value="Save" class="button button-primary button-large" />
-                    </td>
-                    <td><a class="button button-primary button-large"  href="<?php echo add_query_arg( array('tab' => 'register'), $_SERVER['REQUEST_URI'] ); ?>">Cancel</a></td>
-                </tr>
+                    <tr>
+                        <td style="width: 300px;"><b>oxd port:</b></td>
+                        <td>
+                            <br/>
+                            <input class="form-control oxd_openid_table_textbox"  required type="number" name="oxd_host_port" value="<?php if($gluu_oxd_config['oxd_host_port']){ echo $gluu_oxd_config['oxd_host_port'];}else{ echo 8099;} ?>" placeholder="Please enter free port (for example 8099). (Min. number 0, Max. number 65535)" />
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width: 300px;"><b>oxd ID:</b></td>
+                        <td>
+                            <input class="form-control oxd_openid_table_textbox" <?php echo 'disabled'?> type="text" name="oxd_id" value="<?php echo get_option('gluu_oxd_id'); ?>" /><br/>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width: 300px;"> <input type="submit" style="float: right" name="submit" value="Save" class="button button-primary button-large" />
+                        </td>
+                        <td><a class="button button-primary button-large"  href="<?php echo add_query_arg( array('tab' => 'register'), $_SERVER['REQUEST_URI'] ); ?>">Cancel</a></td>
+                    </tr>
                 </table>
 
             </fieldset>
@@ -822,11 +861,7 @@ function gluu_oxd_openid_login_config_info($custom_nonce){
                 <input type="hidden" name="option" value="oxd_openid_config_info_hidden" />
                 <input type="hidden" name="custom_nonce" value="<?php echo $custom_nonce; ?>" />
                 <br/>
-                <script>
-                    jQuery(document).ready(function(){
-                        jQuery('[data-toggle="tooltip"]').tooltip();
-                    });
-                </script>
+
                 <fieldset style="border: 2px solid #53cc6b;">
                     <legend style="width: inherit;"><div class="about">
                             <img style=" height: 45px" src="<?php echo plugins_url('includes/images/gl.png', __FILE__)?>" />
@@ -838,42 +873,42 @@ function gluu_oxd_openid_login_config_info($custom_nonce){
                         <tr>
                             <th scope="col" >
                                 <p id="scop_section">
-                                Requested scopes
-                                <a data-toggle="tooltip" class="tooltipLink" data-original-title="Scopes are bundles of attributes that the OP stores about each user. It is recommended that you request the minimum set of scopes required">
-                                    <span class="glyphicon glyphicon-info-sign"></span>
-                                </a>
+                                    Requested scopes
+                                    <a data-toggle="tooltip" class="tooltipLink" data-original-title="Scopes are bundles of attributes that the OP stores about each user. It is recommended that you request the minimum set of scopes required">
+                                        <span class="glyphicon glyphicon-info-sign"></span>
+                                    </a>
                                 </p>
                             </th>
                             <?php $get_scopes = get_option('gluu_oxd_openid_scops');
                             ?>
                             <td>
-                                 <div class="table-responsive">
-                                     <table class="table table-striped" style="width: 200px">
-                                            <tr >
-                                                <td style="padding: 0px !important;">
-                                                    <label  for="openid">
-                                                        <input checked type="checkbox" name=""  id="openid" value="openid"  disabled />
-                                                        <input type="hidden"  name="scope[]"  value="openid" />openid
-                                                    </label>
-                                                </td>
-                                                <td style="padding: 0px !important; "><button  class="btn btn-danger btn-xs" style="margin: 5px; float: right" disabled><span class="glyphicon glyphicon-trash"></span></button></td>
-                                            </tr>
-                                            <tr >
-                                                <td style="padding: 0px !important;"><label  for="profile">
-                                                            <input checked type="checkbox" name=""  id="profile" value="profile"  disabled />
-                                                            <input type="hidden"  name="scope[]"  value="profile" />profile
-                                                    </label></td>
-                                                <td style="padding: 0px !important;"><button class="btn btn-danger btn-xs" style="margin: 5px; float: right" disabled ><span class="glyphicon glyphicon-trash"></span></button></td>
-                                            </tr >
-                                            <tr >
-                                                <td style="padding: 0px !important;">
-                                                    <label  for="email">
-                                                        <input checked type="checkbox" name="" id="email" value="email"  disabled />
-                                                        <input type="hidden" name="scope[]" value="email" />email
-                                                    </label>
-                                                </td>
-                                                <td style="padding: 0px !important; "><button class="btn btn-danger btn-xs" style="margin: 5px; float: right" disabled><span class="glyphicon glyphicon-trash"></span></button></td>
-                                            </tr>
+                                <div class="table-responsive">
+                                    <table class="table table-striped" style="width: 200px">
+                                        <tr >
+                                            <td style="padding: 0px !important;">
+                                                <label  for="openid">
+                                                    <input checked type="checkbox" name=""  id="openid" value="openid"  disabled />
+                                                    <input type="hidden"  name="scope[]"  value="openid" />openid
+                                                </label>
+                                            </td>
+                                            <td style="padding: 0px !important; "><button  class="btn btn-danger btn-xs" style="margin: 5px; float: right" disabled><span class="glyphicon glyphicon-trash"></span></button></td>
+                                        </tr>
+                                        <tr >
+                                            <td style="padding: 0px !important;"><label  for="profile">
+                                                    <input checked type="checkbox" name=""  id="profile" value="profile"  disabled />
+                                                    <input type="hidden"  name="scope[]"  value="profile" />profile
+                                                </label></td>
+                                            <td style="padding: 0px !important;"><button class="btn btn-danger btn-xs" style="margin: 5px; float: right" disabled ><span class="glyphicon glyphicon-trash"></span></button></td>
+                                        </tr >
+                                        <tr >
+                                            <td style="padding: 0px !important;">
+                                                <label  for="email">
+                                                    <input checked type="checkbox" name="" id="email" value="email"  disabled />
+                                                    <input type="hidden" name="scope[]" value="email" />email
+                                                </label>
+                                            </td>
+                                            <td style="padding: 0px !important; "><button class="btn btn-danger btn-xs" style="margin: 5px; float: right" disabled><span class="glyphicon glyphicon-trash"></span></button></td>
+                                        </tr>
 
 
                                         <?php foreach($get_scopes as $scop) :?>
@@ -891,8 +926,8 @@ function gluu_oxd_openid_login_config_info($custom_nonce){
                                                 </tr>
                                             <?php }
                                         endforeach;?>
-                                        </table>
-                                    </div>
+                                    </table>
+                                </div>
                             </td>
                         </tr>
                         <tr >
@@ -913,7 +948,7 @@ function gluu_oxd_openid_login_config_info($custom_nonce){
                             </td>
                         </tr>
                         </tbody>
-                        </table>
+                    </table>
                     <h3 style="margin-left: 30px;padding-bottom: 20px; border-bottom: 2px solid black; width: 60%">Authentication</h3>
                     <p style=" margin-left: 30px; font-weight:bold "><label ><input type="checkbox" name="send_user_check" id="send_user" value="1" <?php if(!gluu_is_oxd_registered()) echo 'disabled'?> <?php checked( get_option('gluu_send_user_check'));?> /> Bypass the local WordPress login page and send users straight to the OP for authentication</label>
                     </p>
@@ -958,7 +993,7 @@ function gluu_oxd_openid_login_config_info($custom_nonce){
                     </table>
                     <h3 style="margin-left: 30px;padding-top: 20px; border-top: 2px solid black; width: 60%"></h3>
                 </fieldset>
-                </form>
+            </form>
         </div>
     </div>
     <?php
