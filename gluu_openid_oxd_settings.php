@@ -1667,7 +1667,20 @@ function gluu_oxd_openid_login_validate(){
 			}
 			else {
 				$bool = true;
-
+				if(get_option('gluu_users_can_register') == 2 and !empty(get_option('gluu_new_role'))){
+					if (!in_array($reg_user_permission, get_option('gluu_new_role'))) {
+						$bool = false;
+					}else{
+						$bool = True;
+					}
+				}
+				if(!$bool or get_option('gluu_users_can_register') == 3){
+					echo "<script>
+							alert('You are not authorized for an account on this application. If you think this is an error, please contact your OpenID Connect Provider (OP) admin.');
+							location.href='".site_url()."';
+						  </script>";
+					exit;
+				}
 				$random_password 	= wp_generate_password( 10, false );
 				$userdata = array(
 					'user_login'  =>  $username,
