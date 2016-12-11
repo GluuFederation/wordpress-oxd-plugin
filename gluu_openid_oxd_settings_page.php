@@ -128,8 +128,8 @@ function gluu_oxd_register_openid() {
             padding: 10px 10px !important;
         }
     </style>
-    <div id="tab" style="margin-left: -6px;">
-        <h2 class="nav-tab-wrapper">
+    <div id="tab" style="margin-left: -6px; margin-bottom: 7px">
+        <h2 class="nav-tab-wrapper" style="border: none">
             <a class="nav-tab nav-tab1 <?php  if($active_tab == 'register' or $active_tab == 'register_edit')  echo 'nav-tab-active nav-tab-active1'; ?>" href="<?php echo add_query_arg( array('tab' => 'register'), $_SERVER['REQUEST_URI'] ); ?>">General</a>
             <?php if ( !gluu_is_oxd_registered()) {?>
                 <button class="nav-tab nav-tab1 not_checked_button" disabled >OpenID Connect Configuration</button>
@@ -302,7 +302,7 @@ function gluu_oxd_openid_show_client_page($custom_nonce) {
                     </tr>
                     <tr>
                         <td>
-                            <input type="submit" name="submit" value="Next" style="float: left; margin-right: 15px " class="button button-primary button-large" />
+                            <input type="submit" name="submit" value="Register" style="float: left; margin-right: 15px " class="button button-primary button-large" />
                             <input type="button" onclick="delete_register('cancel','<?php echo $custom_nonce;?>')" name="cancel" value="Cancel" style="float: left; " class="button button-primary button-large" />
                         </td>
                         <td>
@@ -911,14 +911,16 @@ function gluu_oxd_openid_login_config_info($custom_nonce){
                                         </tr>
 
 
-                                        <?php foreach($get_scopes as $scop) :?>
+                                        <?php
+                                            foreach($get_scopes as $scop) :?>
                                             <?php if ($scop == 'openid' or $scop == 'email' or $scop == 'profile'){?>
                                             <?php } else{?>
                                                 <tr >
                                                     <td style="padding: 0px !important;">
                                                         <p id="<?php echo $scop;?>">
-                                                            <input <?php if($options && in_array($scop, $options['scope'])){ echo "checked";} ?> type="checkbox" name="scope[]"  id="<?php echo $scop;?>" value="<?php echo $scop;?>" <?php if (!gluu_is_oxd_registered() || $scop=='openid') echo ' disabled '; ?> />
-                                                            <?php echo $scop;?></p>
+                                                            <input <?php if($options && in_array($scop, $options['scope'])){ echo "checked";} ?> type="checkbox" name="scope[]"  id="<?php echo $scop;?>" value="<?php echo $scop;?>" <?php if (!gluu_is_oxd_registered()) echo ' disabled '; ?> />
+                                                            <?php echo $scop;?>
+                                                        </p>
                                                     </td>
                                                     <td style="padding: 0px !important; ">
                                                         <a href="#scop_section" class="btn btn-danger btn-xs" style="margin: 5px; float: right" onclick="delete_scopes('<?php echo $scop;?>','<?php echo $custom_nonce;?>')" ><span class="glyphicon glyphicon-trash"></span></a>
