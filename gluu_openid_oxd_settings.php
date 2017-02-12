@@ -1393,13 +1393,7 @@ function gluu_oxd_openid_login_validate(){
 		$get_user_info->setRequestAccessToken($_SESSION['user_oxd_access_token']);
 		$get_user_info->request();
 		$get_user_info_array = $get_user_info->getResponseObject()->data->claims;
-		if($get_user_info_array->permission[0]){
-			$world = str_replace("[","",$get_user_info_array->permission[0]);
-			$reg_user_permission = str_replace("]","",$world);
-		}elseif($get_tokens_by_code_array->permission[0]){
-			$world = str_replace("[","",$get_user_info_array->permission[0]);
-			$reg_user_permission = str_replace("]","",$world);
-		}
+		
 		$reg_email = '';
 		if($get_user_info_array->email[0]){
 			$reg_email = $get_user_info_array->email[0];
@@ -1485,7 +1479,29 @@ function gluu_oxd_openid_login_validate(){
 		}elseif($get_tokens_by_code_array->street_address[1]){
 			$reg_street_address_2 = $get_tokens_by_code_array->street_address[1];
 		}
-
+        if($get_user_info_array->permission[0]){
+            $world = str_replace("[","",$get_user_info_array->permission[0]);
+            $reg_user_permission = str_replace("]","",$world);
+        }elseif($get_tokens_by_code_array->permission[0]){
+            $world = str_replace("[","",$get_user_info_array->permission[0]);
+            $reg_user_permission = str_replace("]","",$world);
+        }
+        $bool = false;
+		$gluu_new_roles = get_option('gluu_new_role');
+        if(get_option('gluu_users_can_register') == 2 and !empty($gluu_new_roles)){
+	        foreach ($gluu_new_roles as $gluu_new_role) {
+		        if (strstr($reg_user_permission, $gluu_new_role)) {
+			        $bool = true;
+		        }
+	        }
+	        if(!$bool){
+                echo "<script>
+                        alert('You are not authorized for an account on this application. If you think this is an error, please contact your OpenID Connect Provider (OP) admin.');
+                        location.href='".gluu_sso_doing_logout($get_tokens_by_code->getResponseIdToken(), $_REQUEST['session_state'], $_REQUEST['state'])."';
+                      </script>";
+                exit;
+            }
+        }
 		$username = '';
 		if($get_user_info_array->user_name[0]){
 			$username = $get_user_info_array->user_name[0];
@@ -1495,6 +1511,7 @@ function gluu_oxd_openid_login_validate(){
 			$username = $email_split[0];
 		}
 		if( $reg_email ) {
+            
 			if( email_exists( $reg_email ) ) {
 				$user = get_user_by('email', $reg_email);
 				$user_id = $user->ID;
@@ -1599,15 +1616,8 @@ function gluu_oxd_openid_login_validate(){
 				wp_set_auth_cookie($user_id, true);
 			}
 			else {
-				$bool = true;
-				if(get_option('gluu_users_can_register') == 2 and !empty(get_option('gluu_new_role'))){
-					if (!in_array($reg_user_permission, get_option('gluu_new_role'))) {
-						$bool = false;
-					}else{
-						$bool = True;
-					}
-				}
-				if(!$bool or get_option('gluu_users_can_register') == 3){
+				
+				if(get_option('gluu_users_can_register') == 3){
 					echo "<script>
 							alert('You are not authorized for an account on this application. If you think this is an error, please contact your OpenID Connect Provider (OP) admin.');
 							location.href='".gluu_sso_doing_logout($get_tokens_by_code->getResponseIdToken(), $_REQUEST['session_state'], $_REQUEST['state'])."';
