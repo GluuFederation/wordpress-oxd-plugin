@@ -237,7 +237,7 @@ function gluu_oxd_openid_show_client_page($custom_nonce) {
                 </table>
             </div>
             <div style="margin-left: 20px">
-                <h3 style="padding-left: 10px;padding-bottom: 20px; border-bottom: 2px solid black; width: 60% ">Enrollment
+                <h3 style="padding-left: 10px;padding-bottom: 20px; border-bottom: 2px solid black; width: 60% ">Enrollment and Access Management
                     <a data-toggle="tooltip" class="tooltipLink" data-original-title="Register new users when they login at an external identity provider. If you disable automatic registration, new users will need to be manually created">
                         <span class="glyphicon glyphicon-info-sign"></span>
                     </a>
@@ -246,7 +246,7 @@ function gluu_oxd_openid_show_client_page($custom_nonce) {
                     <p><label ><input name="gluu_users_can_register" type="radio" id="gluu_users_can_register_1" <?php if(get_option('gluu_users_can_register')==1){ echo "checked";} ?> value="1" style="margin-right: 3px"> Automatically register any user with an account in the OpenID Provider</label></p>
                 </div>
                 <div style="padding-left: 10px">
-                    <p><label ><input name="gluu_users_can_register" type="radio" id="gluu_users_can_register" <?php if(get_option('gluu_users_can_register')==2){ echo "checked";} ?> value="2" style="margin-right: 3px"> Only register users with the following role(s) in the OpenID Provider</label></p>
+                    <p><label ><input name="gluu_users_can_register" type="radio" id="gluu_users_can_register" <?php if(get_option('gluu_users_can_register')==2){ echo "checked";} ?> value="2" style="margin-right: 3px"> Only register and allow ongoing access to users with one or more of the following roles in the OpenID Provider</label></p>
                     <div style="margin-left: 20px;">
                         <div id="p_role" >
                             <?php $k=0;
@@ -350,7 +350,7 @@ function gluu_oxd_openid_show_new_registration_page($custom_nonce) {
             </div>
             <hr>
             <div style="margin-left: 20px">
-                <h3 style="padding-left: 10px;padding-bottom: 20px; border-bottom: 2px solid black; width: 60% ">Enrollment
+                <h3 style="padding-left: 10px;padding-bottom: 20px; border-bottom: 2px solid black; width: 60% ">Enrollment and Access Management
                     <a data-toggle="tooltip" class="tooltipLink" data-original-title="Register new users when they login at an external identity provider. If you disable automatic registration, new users will need to be manually created">
                         <span class="glyphicon glyphicon-info-sign"></span>
                     </a></h3>
@@ -358,7 +358,7 @@ function gluu_oxd_openid_show_new_registration_page($custom_nonce) {
                     <p><label><input name="gluu_users_can_register" type="radio" id="gluu_users_can_register" <?php if(get_option('gluu_users_can_register')==1){ echo "checked";} ?> value="1" style="margin-right: 3px"> Automatically register any user with an account in the OpenID Provider</label></p>
                 </div>
                 <div style="padding-left: 10px;">
-                    <p><label ><input name="gluu_users_can_register" type="radio" id="gluu_users_can_register" <?php if(get_option('gluu_users_can_register')==2){ echo "checked";} ?> value="2" style="margin-right: 3px"> Only register users with the following role(s) in the OpenID Provider</label></p>
+                    <p><label ><input name="gluu_users_can_register" type="radio" id="gluu_users_can_register" <?php if(get_option('gluu_users_can_register')==2){ echo "checked";} ?> value="2" style="margin-right: 3px"> Only register and allow ongoing access to users with one or more of the following roles in the OpenID Provider</label></p>
                     <div style="margin-left: 30px;">
                         <div id="p_role" >
                             <?php $k=0;
@@ -483,7 +483,7 @@ function gluu_oxd_openid_show_new_registration__restet_page($custom_nonce) {
                     </table>
                 </div>
                 <div>
-                    <h3 style="margin-left: 35px; padding-left: 10px;padding-bottom: 20px; border-bottom: 2px solid black; width: 60% ">Enrollment
+                    <h3 style="margin-left: 35px; padding-left: 10px;padding-bottom: 20px; border-bottom: 2px solid black; width: 60% ">Enrollment and Access Management
                         <a data-toggle="tooltip" class="tooltipLink" data-original-title="Register new users when they login at an external identity provider. If you disable automatic registration, new users will need to be manually created">
                             <span class="glyphicon glyphicon-info-sign"></span>
                         </a>
@@ -492,7 +492,7 @@ function gluu_oxd_openid_show_new_registration__restet_page($custom_nonce) {
                         <p><label ><input name="gluu_users_can_register" disabled type="radio" id="gluu_users_can_register_1" <?php if(get_option('gluu_users_can_register')==1){ echo "checked";} ?> value="1" style="margin-right: 3px"> Automatically register any user with an account in the OpenID Provider</label></p>
                     </div>
                     <div style="margin-left: 35px">
-                        <p><label ><input name="gluu_users_can_register" type="radio" disabled id="gluu_users_can_register" <?php if(get_option('gluu_users_can_register')==2){ echo "checked";} ?> value="2" style="margin-right: 3px"> Only register users with the following role(s) in the OpenID Provider</label></p>
+                        <p><label ><input name="gluu_users_can_register" type="radio" disabled id="gluu_users_can_register" <?php if(get_option('gluu_users_can_register')==2){ echo "checked";} ?> value="2" style="margin-right: 3px"> Only register and allow ongoing access to users with one or more of the following roles in the OpenID Provider</label></p>
                         <div style="margin-left: 30px;">
                             <div id="p_role_disabled" >
                                 <?php
@@ -637,7 +637,7 @@ function gluu_oxd_openid_edit_page($custom_nonce) {
                     </table>
                 </div>
                 <div>
-                    <h3 style="margin-left: 30px;padding-left: 10px;padding-bottom: 20px; border-bottom: 2px solid black; width: 60% ">Enrollment
+                    <h3 style="margin-left: 30px;padding-left: 10px;padding-bottom: 20px; border-bottom: 2px solid black; width: 60% ">Enrollment and Access Management
                         <a data-toggle="tooltip" class="tooltipLink" data-original-title="Register new users when they login at an external identity provider. If you disable automatic registration, new users will need to be manually created">
                             <span class="glyphicon glyphicon-info-sign"></span>
                         </a>
@@ -654,7 +654,7 @@ function gluu_oxd_openid_edit_page($custom_nonce) {
                         <p>
                             <label >
                                 <input name="gluu_users_can_register" type="radio" id="gluu_users_can_register" <?php if(get_option('gluu_users_can_register')==2){ echo "checked";} ?> value="2" style="margin-right: 3px">
-                                Only register users with the following role(s) in the OpenID Provider
+                                Only register and allow ongoing access to users with one or more of the following roles in the OpenID Provider
                             </label>
                         </p>
                     </div>
@@ -748,7 +748,7 @@ function gluu_oxd_openid_edit_client_page($custom_nonce) {
                 <div style="margin-left: 35px">
                     <p>
                         <label >
-                            <input name="gluu_users_can_register" type="radio" id="gluu_users_can_register" <?php if(get_option('gluu_users_can_register')==2){ echo "checked";} ?> value="2" style="margin-right: 3px"> Only register users with the following role(s) in the OpenID Provider</label></p>
+                            <input name="gluu_users_can_register" type="radio" id="gluu_users_can_register" <?php if(get_option('gluu_users_can_register')==2){ echo "checked";} ?> value="2" style="margin-right: 3px"> Only register and allow ongoing access to users with one or more of the following roles in the OpenID Provider</label></p>
                     <div style="margin-left: 20px;display:<?php if(get_option('gluu_users_can_register') == 1){ echo "none";} ?>;">
                         <div id="p_role" >
 
