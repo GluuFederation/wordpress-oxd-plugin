@@ -52,7 +52,7 @@ By leveraging a central identity provider (IDP) for authentication you can enabl
 
 = From WordPress.org =
 1. Download OpenID Connect Single Sign-On (SSO) Plugin By Gluu.
-2. Unzip and upload the `wp_openid_connect_single_sign_on_plugin_by_gluu` directory to your `/wp-content/plugins/` directory.
+2. Unzip and upload the `openid-connect-sso-by-gluu` directory to your `/wp-content/plugins/` directory.
 3. Activate OpenID Connect Single Sign-On (SSO) Plugin By Gluu from your Plugins page.
 
 = Once Activated =
