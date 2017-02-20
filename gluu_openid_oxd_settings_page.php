@@ -6,7 +6,7 @@
 	 *
 	 * @package	  OpenID Connect SSO Plugin by Gluu
 	 * @category  Plugin for Wordpress
-	 * @version   2.4.4
+	 * @version   3.0.0
 	 *
 	 * @author    Gluu Inc.          : <https://gluu.org>
 	 * @link      Oxd site           : <https://oxd.gluu.org>

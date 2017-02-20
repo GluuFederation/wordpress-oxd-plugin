@@ -15,6 +15,7 @@ if(is_admin()){
 	delete_option('gluu_users_can_register');
 	delete_option('gluu_new_role');
 	delete_option('gluu_custom_url');
+	delete_option('wp_custom_login_url');
 	delete_option('gluu_op_host');
 	delete_option('gluu_redirect_url');
 	delete_option('gluu_oxd_openid_custom_scripts');

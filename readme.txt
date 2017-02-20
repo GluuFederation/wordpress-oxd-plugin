@@ -4,7 +4,7 @@ Donate: https://www.gluu.org/deploy/
 Tags: openid connect, oauth 2.0, google login, single sign-on, sso, social login, social authentication, strong authentication, two-factor authentication, multi-factor authentication, 2fa, mfa, acr, dynamic enrollment
 Requires at least: 2.0.2
 Tested up to: 4.7
-Stable tag: 2.4.4
+Stable tag: 3.0.0
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -74,17 +74,17 @@ See the [oxd website](http://oxd.gluu.org).
 
 == Changelog ==
 
-= 2.4.4 =
+= 3.0.0 =
 * Added gluu server url section (op_host).
 * Stable version, supported by Gluu Inc.
-* Working with gluu and oxd servers version 2.4.4
+* Working with gluu and oxd servers version 3.0.0
 * Added Site login URI field
 
 == Upgrade Notice ==
-= 2.4.4 =
+= 3.0.0 =
 * Added gluu server url section (op_host).
 * Stable version, supported by Gluu Inc.
-* Working with gluu and oxd servers version 2.4.4
+* Working with gluu and oxd servers version 3.0.0
 * Added Site login URI field
 
 

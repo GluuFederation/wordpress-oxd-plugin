@@ -4,7 +4,7 @@
 	 * Plugin Name: OpenID Connect Single Sign-On (SSO) Plugin By Gluu
 	 * Plugin URI: https://oxd.gluu.org/
 	 * Description: Use OpenID Connect to login by leveraging the oxd client service demon.
-	 * Version: 2.4.4
+	 * Version: 3.0.0
 	 * Author: Gluu
 	 * Author URI: https://github.com/GluuFederation/wordpress-oxd-plugin
 	 * License: GPL3
@@ -16,7 +16,7 @@
 	 *
 	 * @package	  OpenID Connect SSO Plugin by Gluu
 	 * @category  Plugin for Wordpress
-	 * @version   2.4.4
+	 * @version   3.0.0
 	 *
 	 * @author    Gluu Inc.          : <https://gluu.org>
 	 * @link      Oxd site           : <https://oxd.gluu.org>
