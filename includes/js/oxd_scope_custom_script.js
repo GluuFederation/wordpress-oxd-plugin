@@ -1,5 +1,5 @@
 /**
- * Created by Vlad Karapetyan on 12/25/2015.
+ * Created by Volodya Karapetyan on 12/25/2015.
  */
 jQuery(function() {
     var scntDiv = jQuery('#p_scents');

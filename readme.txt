@@ -78,12 +78,15 @@ See the [oxd website](http://oxd.gluu.org).
 * Added gluu server url section (op_host).
 * Stable version, supported by Gluu Inc.
 * Working with gluu and oxd servers version 2.4.4
+* Added Site login URI field
 
 == Upgrade Notice ==
 = 2.4.4 =
 * Added gluu server url section (op_host).
 * Stable version, supported by Gluu Inc.
 * Working with gluu and oxd servers version 2.4.4
+* Added Site login URI field
+
 
 
 

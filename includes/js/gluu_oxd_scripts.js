@@ -1,5 +1,5 @@
 /**
- * Created by Vlad on 11/27/2015.
+ * Created by Volodya on 11/27/2015.
  */
 
 var tempHorSize = option.oxd_login_icon_custom_size;
