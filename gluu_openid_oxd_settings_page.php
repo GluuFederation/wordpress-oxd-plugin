@@ -6,11 +6,11 @@
 	 *
 	 * @package	  OpenID Connect SSO Plugin by Gluu
 	 * @category  Plugin for Wordpress
-	 * @version   3.0.0
+	 * @version   3.0.1
 	 *
 	 * @author    Gluu Inc.          : <https://gluu.org>
 	 * @link      Oxd site           : <https://oxd.gluu.org>
-	 * @link      Documentation      : <https://oxd.gluu.org/docs/plugin/wordpress/>
+	 * @link      Documentation      : <https://gluu.org/docs/oxd/3.0.1/plugin/wordpress/>
 	 * @director  Mike Schwartz      : <mike@gluu.org>
 	 * @support   Support email      : <support@gluu.org>
 	 * @developer Volodya Karapetyan : <https://github.com/karapetyan88> <mr.karapetyan88@gmail.com>
@@ -175,7 +175,7 @@
                 <?php }else {?>
                     <a class="nav-tab nav-tab1 <?php echo $active_tab == 'login_config' ? 'nav-tab-active nav-tab-active1' : ''; ?>" href="<?php echo add_query_arg( array('tab' => 'login_config'), $_SERVER['REQUEST_URI'] ); ?>">OpenID Connect Configuration</a>
                 <?php }?>
-                <a class="nav-tab nav-tab1" href="https://oxd.gluu.org/docs/plugin/wordpress/" target="_blank">Documentation</a>
+                <a class="nav-tab nav-tab1" href="https://gluu.org/docs/oxd/3.0.1/plugin/wordpress/" target="_blank">Documentation</a>
             </h2>
         </div>
         <div id="oxd_openid_settings">
@@ -236,7 +236,7 @@
                 <br/>
                 <div style="padding-left: 30px;">Register your site with any standard OpenID Provider (OP). If you need an OpenID Provider you can deploy the <a target="_blank" href="https://gluu.org/docs/deployment/"> free open source Gluu Server.</a></div>
                 <hr>
-                <div style="padding-left: 30px;">This plugin relies on the oxd mediator service. For oxd deployment instructions and license information, please visit the <a target="_blank" href="http://gluu.org">oxd website.</a></div>
+                <div style="padding-left: 30px;">This plugin relies on the oxd mediator service. For oxd deployment instructions and license information, please visit the <a target="_blank" href="https://oxd.gluu.org">oxd website.</a></div>
                 <hr>
                 <div style="margin-left: 20px">
                     <h3 style="padding-left: 10px;padding-bottom: 20px; border-bottom: 2px solid black; width: 60% "> Server Settings</h3>
@@ -372,7 +372,7 @@
                 <br/>
                 <div  style="padding-left: 30px;">Register your site with any standard OpenID Provider (OP). If you need an OpenID Provider you can deploy the <a target="_blank" href="https://gluu.org/docs/deployment/"> free open source Gluu Server.</a></div>
                 <hr>
-                <div style="padding-left: 30px;">This plugin relies on the oxd mediator service. For oxd deployment instructions and license information, please visit the <a target="_blank" href="http://gluu.org">oxd website.</a></div>
+                <div style="padding-left: 30px;">This plugin relies on the oxd mediator service. For oxd deployment instructions and license information, please visit the <a target="_blank" href="https://oxd.gluu.org">oxd website.</a></div>
                 <hr>
                 <div style="margin-left: 20px">
                     <h3 style="padding-left: 10px;padding-bottom: 20px; border-bottom: 2px solid black; width: 60% "> Server Settings</h3>

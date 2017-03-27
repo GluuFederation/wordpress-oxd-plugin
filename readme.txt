@@ -4,7 +4,7 @@ Donate: https://www.gluu.org/deploy/
 Tags: openid connect, oauth 2.0, google login, single sign-on, sso, social login, social authentication, strong authentication, two-factor authentication, multi-factor authentication, 2fa, mfa, acr, dynamic enrollment
 Requires at least: 2.0.2
 Tested up to: 4.7
-Stable tag: 3.0.0
+Stable tag: 3.0.1
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
 
@@ -39,7 +39,7 @@ By leveraging a central identity provider (IDP) for authentication you can enabl
 = Website =
 *   **Gluu server site :** https://www.gluu.org
 *   **Oxd server site :** https://oxd.gluu.org
-*   **Documentation :** https://oxd.gluu.org/docs/plugin/wordpress/
+*   **Documentation :** https://gluu.org/docs/oxd/3.0.1/plugin/wordpress/
 *   **Support :** https://support.gluu.org
 
 == Installation ==
@@ -58,7 +58,7 @@ By leveraging a central identity provider (IDP) for authentication you can enabl
 = Once Activated =
 Register an OP, request user scopes, and configure authentication.  
 
-Read the documentation: https://oxd.gluu.org/docs/plugin/wordpress/
+Read the documentation: https://gluu.org/docs/oxd/3.0.1/plugin/wordpress/
 
 == Screenshots ==
 
@@ -74,17 +74,17 @@ See the [oxd website](http://oxd.gluu.org).
 
 == Changelog ==
 
-= 3.0.0 =
+= 3.0.1 =
 * Added gluu server url section (op_host).
 * Stable version, supported by Gluu Inc.
-* Working with gluu and oxd servers version 3.0.0
+* Working with gluu and oxd servers version 3.0.1
 * Added Site login URI field
 
 == Upgrade Notice ==
-= 3.0.0 =
+= 3.0.1 =
 * Added gluu server url section (op_host).
 * Stable version, supported by Gluu Inc.
-* Working with gluu and oxd servers version 3.0.0
+* Working with gluu and oxd servers version 3.0.1
 * Added Site login URI field
 
 
