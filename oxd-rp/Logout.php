@@ -11,7 +11,7 @@
 	 *
 	 * @package	  Oxd Library by Gluu
 	 * @category  Library, Api
-	 * @version   3.0.1
+	 * @version   3.1.1
 	 *
 	 * @author    Gluu Inc.          : <https://gluu.org>
 	 * @link      Oxd site           : <https://oxd.gluu.org>
@@ -70,7 +70,20 @@
 
     /**start parameter for response!**/
     private $response_html;
+    
+    /**
+    * @var string $request_access_token     access token for each request
+    */
+    private $request_access_token;
     /**end response parameter**/
+
+    function getRequest_access_token() {
+        return $this->request_access_token;
+    }
+
+    function setRequest_access_token($request_access_token) {
+        $this->request_access_token = $request_access_token;
+    }
 
     public function __construct()
     {
@@ -180,7 +193,8 @@
             "id_token_hint" => $this->getRequestIdToken(),
             "post_logout_redirect_uri" => $this->getRequestPostLogoutRedirectUri(),
             "state" => $this->getRequestState(),
-            "session_state" => $this->getRequestSessionState()
+            "session_state" => $this->getRequestSessionState(),
+            "protection_access_token" => $this->getRequest_access_token()
         );
     }
 

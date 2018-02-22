@@ -11,7 +11,7 @@
 	 *
 	 * @package	  Oxd Library by Gluu
 	 * @category  Library, Api
-	 * @version   3.0.1
+	 * @version   3.1.1
 	 *
 	 * @author    Gluu Inc.          : <https://gluu.org>
 	 * @link      Oxd site           : <https://oxd.gluu.org>
@@ -70,10 +70,15 @@
 
     /**start parameter for response!**/
     private $response_access_token;
+    private $response_refresh_token;
     private $response_expires_in;
     private $response_id_token;
     private $response_id_token_claims;
-    /**end response parameter**/
+    /**
+     *
+     * @var string protection access token for each request
+     */
+    private $request_protection_access_token;
 
     public function __construct()
     {
@@ -154,7 +159,14 @@
         return $this->response_access_token;
     }
 
-
+    /**
+    * @return string
+    */
+    public function getResponseRefreshToken()
+    {
+        $this->response_refresh_token = $this->getResponseData()->refresh_token;
+        return $this->response_refresh_token;
+    }
 
     /**
      * @return mixed
@@ -173,6 +185,22 @@
         $this->response_id_token_claims = $this->getResponseData()->id_token_claims;
         return $this->response_id_token_claims;
     }
+    
+    /**
+     * @return protection access token
+     */
+    public function getRequest_protection_access_token()
+    {
+        return $this->request_protection_access_token;
+    }
+    
+    /**
+     * @return protection access token
+     */
+    public function setRequest_protection_access_token($request_protection_access_token)
+    {
+        $this->request_protection_access_token = $request_protection_access_token;
+    }
 
     public function setCommand()
     {
@@ -185,6 +213,7 @@
             "oxd_id" => $this->getRequestOxdId(),
             "code" => $this->getRequestCode(),
             "state" => $this->getRequestState(),
+            "protection_access_token" => $this->getRequest_protection_access_token()
             //"nonce" => $this->getRequestNonce(),
         );
     }

@@ -6,7 +6,7 @@
 	 *
 	 * @package	  OpenID Connect SSO Plugin by Gluu
 	 * @category  Plugin for Wordpress
-	 * @version   3.0.1
+	 * @version   3.1.1
 	 *
 	 * @author    Gluu Inc.          : <https://gluu.org>
 	 * @link      Oxd site           : <https://oxd.gluu.org>
@@ -47,6 +47,91 @@
             return 1;
         }
     }
+    function gluu_oxd_import_export_settings(){
+        global $current_user;
+        get_currentuserinfo();
+        $totalConfig = [];
+        $totalConfig['gluu_oxd_config'] = is_null(get_option('gluu_oxd_config')) ? null : get_option('gluu_oxd_config');
+        $totalConfig['oxd_to_http_host'] = is_null(get_option('oxd_to_http_host')) ? null : get_option('oxd_to_http_host');
+        $totalConfig['oxd_request_pattern'] = is_null(get_option('oxd_request_pattern')) ? null : get_option('oxd_request_pattern');
+        $totalConfig['oxd_openid_new_registration'] = is_null(get_option('oxd_openid_new_registration')) ? null : get_option('oxd_openid_new_registration');
+        $totalConfig['gluu_users_can_register'] = is_null(get_option('gluu_users_can_register')) ? null : get_option('gluu_users_can_register');
+        $totalConfig['gluu_send_user_check'] = is_null(get_option('gluu_send_user_check')) ? null : get_option('gluu_send_user_check');
+        $totalConfig['gluu_oxd_openid_scops'] = is_null(get_option('gluu_oxd_openid_scops')) ? null : get_option('gluu_oxd_openid_scops');
+        $totalConfig['gluu_oxd_openid_message'] = is_null(get_option('gluu_oxd_openid_message')) ? null : get_option('gluu_oxd_openid_message');
+        $totalConfig['gluu_oxd_openid_custom_scripts'] = is_null(get_option('gluu_oxd_openid_custom_scripts')) ? null : get_option('gluu_oxd_openid_custom_scripts');
+        $totalConfig['gluu_oxd_id'] = is_null(get_option('gluu_oxd_id')) ? null : get_option('gluu_oxd_id');
+        $totalConfig['gluu_op_host'] = is_null(get_option('gluu_op_host')) ? null : get_option('gluu_op_host');
+        $totalConfig['gluu_new_role'] = is_null(get_option('gluu_new_role')) ? null : get_option('gluu_new_role');
+        $totalConfig['gluu_custom_url'] = is_null(get_option('gluu_custom_url')) ? null : get_option('gluu_custom_url');
+        $totalConfig['gluu_auth_type'] = is_null(get_option('gluu_auth_type')) ? null : get_option('gluu_auth_type');
+//        echo "<pre>";
+//        print_r(json_encode($totalConfig));
+//        echo "</pre>";
+    ?>
+        <script type="application/javascript">
+            jQuery(document ).ready(function() {
+                    jQuery('.import_div').show();
+                    jQuery('.export_div').hide();
+                    var data = <?php echo json_encode($totalConfig);?>;
+                    var json = JSON.stringify(data);
+                    var blob = new Blob([json], {type: "application/json"});
+                    var url  = URL.createObjectURL(blob);
+                    jQuery('#export_settings_button').attr('href',url);
+                    jQuery('#import').click(function(){
+                        jQuery(this).parent('li').addClass('active').siblings().removeClass('active');
+                        jQuery('.import_div').show();
+                        jQuery('.export_div').hide();
+                    });
+                    jQuery('#export').click(function(){
+                        jQuery(this).parent('li').addClass('active').siblings().removeClass('active');
+                        jQuery('.import_div').hide();
+                        jQuery('.export_div').show();
+                    });
+            });
+        </script>
+        <div id="oxd_openid_settings">
+            <div class="oxd_container">
+                <div id="oxd_openid_msgs" style="margin-left: -3px;"></div>
+                <div class="oxd_openid_table_layout"> 
+                    <ul class="nav nav-tabs">
+                        <li role="presentation" class="active"><a id="import">Import Settings</a></li>
+                        <li role="presentation"><a id="export">Export Settings</a></li>
+                    </ul>
+                    <div class="row import_div">
+                         <div class="col-md-12">
+                            <h4 class="text-left">Import oxd OpenID Connect plugin configuration.</h4>
+                        </div>
+                    </div>
+                    <div class="row import_div">    
+                        <form name="f" method="post" action="" id="import_settings_form" enctype="multipart/form-data" >
+                            <div class="col-md-12">
+                                <label for="oxd_openid_settings">Upload oxd OpenID Connect plugin Settings JSON file
+                            </div>
+                            <div class="col-md-4">
+                                <input type="file" name="oxd_openid_settings" class="form-control" placeholder="Oxd Openid Settings JSON" />
+                            </div>
+                            <div class="col-md-4">    
+                                <button type="submit" class="btn btn-success">Import</button>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="row export_div">
+                        <div class="col-md-12">
+                            <h4 class="text-left">Download oxd OpenID Connect plugin configuration .</h4>
+                        </div>
+                    </div>
+                    <div class="row export_div">
+                        <div class="col-md-12 text-left">
+                            <button class="btn btn-success"><a id="export_settings_button" style="color: white;" download="oxd-openid-settings.json">Export</a></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    
+    <?php
+    }
     function gluu_oxd_register_openid() {
         wp_enqueue_script('jquery');
         wp_enqueue_media();
@@ -72,6 +157,24 @@
         </script>
         <script type="application/javascript">
             jQuery(document ).ready(function() {
+                <?php
+                    if(get_option('oxd_to_http_host') && get_option("oxd_request_pattern") == 2){
+                ?>
+                jQuery('input:radio[name="oxd_request_pattern"]').filter('[value="2"]').attr('checked', 'checked');
+                jQuery("#oxdSocket").hide();
+                jQuery("#oxdWeb").show();
+                jQuery(".oxdToHttpUrl").attr("required","true");
+                <?php        
+                    }
+                    else{
+                ?>     
+                jQuery('input:radio[name="oxd_request_pattern"]').filter('[value="1"]').attr('checked', 'checked');
+                jQuery("#oxdWeb").hide();
+                jQuery("#oxdSocket").show();
+                jQuery(".oxdToHttpUrl").removeAttr("required");
+                <?php
+                    }
+                ?>
                 <?php
                 if(get_option('gluu_users_can_register') == 2){
                 ?>
@@ -156,6 +259,20 @@
                                 }});
                         }
                     });
+                    jQuery('input:radio[name="oxd_request_pattern"]').change(function(){
+                        if(jQuery(this).val() == 1)
+                        {
+                            jQuery("#oxdWeb").hide();
+                            jQuery("#oxdSocket").show();
+                            jQuery(".oxdToHttpUrl").removeAttr("required");
+                        }
+                        if(jQuery(this).val() == 2)
+                        {
+                            jQuery("#oxdSocket").hide();
+                            jQuery("#oxdWeb").show();
+                            jQuery(".oxdToHttpUrl").attr("required","true");
+                        }
+                    });
     
             });
         </script>
@@ -234,15 +351,17 @@
             <input type="hidden" name="custom_nonce" value="<?php echo $custom_nonce; ?>" />
             <div class=" oxd_openid_table_layout">
                 <br/>
-                <div style="padding-left: 30px;">Register your site with any standard OpenID Provider (OP). If you need an OpenID Provider you can deploy the <a target="_blank" href="https://gluu.org/docs/deployment/"> free open source Gluu Server.</a></div>
-                <hr>
-                <div style="padding-left: 30px;">This plugin relies on the oxd mediator service. For oxd deployment instructions and license information, please visit the <a target="_blank" href="https://oxd.gluu.org">oxd website.</a></div>
+                <div style="padding-left: 30px;">
+                    <p>The oxd OpenID Connect single sign-on (SSO) plugin for WordPress enables you to use a standard OpenID Connect Provider (OP), like Google or the Gluu Server, to authenticate and enroll users for your WordPress site.</p>
+                    <p>This plugin relies on the oxd mediator service. For oxd deployment instructions and license information, please visit the <a href="https://oxd.gluu.org/">oxd website</a>.</p>
+                    <p>In addition, if you want to host your own OP you can deploy the <a href="https://www.gluu.org/">free open source Gluu Server</a>.</p>
+                </div>
                 <hr>
                 <div style="margin-left: 20px">
-                    <h3 style="padding-left: 10px;padding-bottom: 20px; border-bottom: 2px solid black; width: 60% "> Server Settings</h3>
+                    <h3 style="padding-left: 10px;padding-bottom: 20px; border-bottom: 2px solid black; width: 60% "> Server Settings<p><i><p>The below values are required to configure your WordPress site with your oxd server and OP. Upon successful registration of your WordPress site in the OP, a unique identifier will be issued and displayed below in a new field called: oxd ID.</p></i></p></h3>
                     <table class="form-table" >
                         <tr>
-                            <td style="width: 300px;"><b>URI of the OpenID Provider:</b></td>
+                            <td style="width: 300px;"><b>URI of the OpenID Connect Provider:</b></td>
                             <td>
                                 <input class="oxd_openid_table_textbox form-control" type="url" name="gluu_server_url"  placeholder="Enter URI of the OpenID Provider" value="<?php if(get_option('gluu_op_host')){ echo get_option('gluu_op_host');} ?>" /></td>
                         </tr>
@@ -252,9 +371,10 @@
                                 <input class="oxd_openid_table_textbox form-control"  type="url" name="gluu_custom_url"  placeholder="Enter custom URI after logout" value="<?php if(get_option('gluu_custom_url')){ echo get_option('gluu_custom_url');} ?>" /></td>
                         </tr>
                         <tr>
-                            <td style="width: 300px;"><label for="wp_custom_login_url"><b>Site Login URI: <?php echo site_url(); ?>/</b></label></td>
+                            <td style="width: 300px;"><label for="wp_custom_login_url"><b>Site Login URI: <?php // echo site_url(); ?></b></label></td>
                             <td>
-                                <input class="oxd_openid_table_textbox form-control"  type="text" name="wp_custom_login_url"  placeholder="Enter your site login URI" value="<?php if(get_option('wp_custom_login_url')){ echo get_option('wp_custom_login_url');} ?>" /></td>
+                                <!--echo get_option('wp_custom_login_url');-->
+                                <input class="oxd_openid_table_textbox form-control"  type="text" name="wp_custom_login_url"  placeholder="Enter your site login URI" value="<?php if(get_option('wp_custom_login_url')){ echo site_url();} ?>" /></td>
                         </tr>
                         <tr>
                             <td style="width: 300px;"><b><font color="#FF0000">*</font>Redirect URL:</b></td>
@@ -273,9 +393,39 @@
                                 <input class="form-control oxd_openid_table_textbox" type="text" name="gluu_client_secret" required placeholder="Enter OpenID Provider client secret" value="" /></td>
                         </tr>
                         <tr>
-                            <td style="width: 300px;"><b><font color="#FF0000">*</font>oxd port:</b></td>
+                            <td  style="width: 310px;">
+                                <b>
+                                    <font color="#FF0000">*</font>Select oxd Server / oxd https extension 
+                                    <a data-toggle="tooltip" class="tooltipLink" data-original-title="If you are using localhost to connect your WordPress site to your oxd server, choose oxd Server. If you are connecting via https, choose oxd oxd https extension.">
+                                        <span class="glyphicon glyphicon-info-sign"></span>
+                                    </a>
+                                </b>
+                            </td>
                             <td>
-                                <input class="oxd_openid_table_textbox form-control" required type="number" name="oxd_host_port" value="<?php if($gluu_oxd_config['oxd_host_port']){ echo $gluu_oxd_config['oxd_host_port'];}else{ echo 8099;} ?>" placeholder="Please enter free port (for example 8099). (Min. number 0, Max. number 65535)" />
+                                <div class="row">
+                                    <div class="col-md-12">    
+                                        <div class="radio">
+                                            <label><input type="radio" style="margin-top:1px" name="oxd_request_pattern" value="1">oxd Server</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="radio">
+                                            <label><input type="radio" style="margin-top:1px" name="oxd_request_pattern" value="2">oxd https extension</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr id="oxdSocket" style="display:none;">
+                            <td  style="width: 300px;"><b><font color="#FF0000">*</font>oxd Port:</b></td>
+                            <td>
+                                <input class="oxd_openid_table_textbox form-control" required type="number" name="oxd_host_port" value="<?php if($gluu_oxd_config['oxd_host_port']){ echo $gluu_oxd_config['oxd_host_port'];}else{ echo 8099;} ?>" placeholder="Please enter free port (for example 8099). (Min. number 0, Max. number 65535)" /><br/>
+                            </td>
+                        </tr>
+                        <tr id="oxdWeb" style="display:none;">
+                            <td style="width: 300px;"><b><font color="#FF0000">*</font>oxd https extension Host:</b></td>
+                            <td>
+                                <input class="oxdToHttpUrl oxd_openid_table_textbox form-control" required type="text" name="oxd_to_http_host" value="<?php if(get_option('oxd_to_http_host') && get_option("oxd_request_pattern") == 2){ echo get_option('oxd_to_http_host');} ?>" placeholder="Please enter oxd-TO-HTTP Host" />
                             </td>
                         </tr>
                         
@@ -342,13 +492,14 @@
                         <tr>
                             <td style="width: 300px;"><label for="default_role"><b>New User Default Role:</b></label></td>
                             <td>
-                                <select class="form-control" name="default_role" id="default_role"><?php wp_dropdown_roles( get_option('default_role') ); ?></select>
+                                <select class="form-control" style="width:45% !important" name="default_role" id="default_role"><?php wp_dropdown_roles( get_option('default_role') ); ?></select>
                             </td>
                         </tr>
+                        <tr><th style="border-bottom:2px solid #000;"></th></tr>
                         <tr>
-                            <td>
-                                <input type="submit" name="submit" value="Register" style="float: left; margin-right: 15px " class="button button-primary button-large" />
-                                <input type="button" onclick="delete_register('cancel','<?php echo $custom_nonce;?>')" name="cancel" value="Cancel" style="float: left; " class="button button-primary button-large" />
+                            <td class="text-center" colspan="3">
+                                <input type="submit" name="submit" value="Register" style="margin-right: 20px " class="button button-primary button-large" />
+                                <input type="button" onclick="delete_register('cancel','<?php echo $custom_nonce;?>')" name="cancel" value="Cancel" class="button button-primary button-large" />
                             </td>
                             <td>
                             </td>
@@ -359,6 +510,7 @@
         </form>
         <?php
     }
+    //New registration page
     function gluu_oxd_openid_show_new_registration_page($custom_nonce) {
         update_option ( 'oxd_openid_new_registration', 'true' );
         global $current_user;
@@ -370,15 +522,20 @@
             <input type="hidden" name="custom_nonce" value="<?php echo $custom_nonce; ?>" />
             <div class="oxd_openid_table_layout">
                 <br/>
-                <div  style="padding-left: 30px;">Register your site with any standard OpenID Provider (OP). If you need an OpenID Provider you can deploy the <a target="_blank" href="https://gluu.org/docs/deployment/"> free open source Gluu Server.</a></div>
-                <hr>
-                <div style="padding-left: 30px;">This plugin relies on the oxd mediator service. For oxd deployment instructions and license information, please visit the <a target="_blank" href="https://oxd.gluu.org">oxd website.</a></div>
+                <div style="padding-left: 30px;">
+                    <p>The oxd OpenID Connect single sign-on (SSO) plugin for WordPress enables you to use a standard OpenID Connect Provider (OP), like Google or the Gluu Server, to authenticate and enroll users for your WordPress site.</p>
+                    <p>This plugin relies on the oxd mediator service. For oxd deployment instructions and license information, please visit the <a href="https://oxd.gluu.org/">oxd website</a>.</p>
+                    <p>In addition, if you want to host your own OP you can deploy the <a href="https://www.gluu.org/">free open source Gluu Server</a>.</p>
+                </div>
                 <hr>
                 <div style="margin-left: 20px">
-                    <h3 style="padding-left: 10px;padding-bottom: 20px; border-bottom: 2px solid black; width: 60% "> Server Settings</h3>
+                    <h3 style="padding-left: 10px;padding-bottom: 20px; border-bottom: 2px solid black; width: 60% ">
+                        Server Settings
+                        <p><i><p>The below values are required to configure your WordPress site with your oxd server and OP. Upon successful registration of your WordPress site in the OP, a unique identifier will be issued and displayed below in a new field called: oxd ID.</p></i></p>
+                    </h3>
                     <table class="form-table">
                         <tr>
-                            <td  style="width: 300px;"><b>URI of the OpenID Provider:</b></td>
+                            <td  style="width: 300px;"><b>URI of the OpenID Connect Provider:</b></td>
                             <td><input class="oxd_openid_table_textbox form-control" type="url" name="gluu_server_url" placeholder="Enter URI of the OpenID Provider" value="<?php if(get_option('gluu_op_host')){ echo get_option('gluu_op_host');} ?>" /></td>
                         </tr>
                         <tr>
@@ -386,14 +543,44 @@
                             <td><input class="oxd_openid_table_textbox form-control" type="url" name="gluu_custom_url"  placeholder="Enter custom URI after logout" value="<?php if(get_option('gluu_custom_url')){ echo get_option('gluu_custom_url');} ?>" /></td>
                         </tr>
                         <tr>
-                            <td style="width: 300px;"><label for="wp_custom_login_url"><b>Site Login URI: <?php echo site_url(); ?>/</b></label></td>
+                            <td style="width: 300px;"><label for="wp_custom_login_url"><b>Site Login URI: <?php // echo site_url(); ?></b></label></td>
                             <td>
                                 <input class="oxd_openid_table_textbox form-control"  type="text" name="wp_custom_login_url"  placeholder="Enter your site login URI" value="<?php if(get_option('wp_custom_login_url')){ echo get_option('wp_custom_login_url');} ?>" /></td>
                         </tr>
                         <tr>
-                            <td  style="width: 300px;"><b><font color="#FF0000">*</font>oxd port:</b></td>
+                            <td  style="width: 310px;">
+                                <b>
+                                    <font color="#FF0000">*</font>Select oxd Server / oxd https extension 
+                                    <a data-toggle="tooltip" class="tooltipLink" data-original-title="If you are using localhost to connect your WordPress site to your oxd server, choose oxd Server. If you are connecting via https, choose oxd oxd https extension.">
+                                        <span class="glyphicon glyphicon-info-sign"></span>
+                                    </a>
+                                </b>
+                            </td>
+                            <td>
+                                <div class="row">
+                                    <div class="col-md-12">    
+                                        <div class="radio">
+                                            <label><input type="radio" style="margin-top:1px" name="oxd_request_pattern" value="1">oxd Server</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="radio">
+                                            <label><input type="radio" style="margin-top:1px" name="oxd_request_pattern" value="2">oxd https extension</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr id="oxdSocket" style="display:none;">
+                            <td  style="width: 300px;"><b><font color="#FF0000">*</font>oxd Port:</b></td>
                             <td>
                                 <input class="oxd_openid_table_textbox form-control" required type="number" name="oxd_host_port" value="<?php if($gluu_oxd_config['oxd_host_port']){ echo $gluu_oxd_config['oxd_host_port'];}else{ echo 8099;} ?>" placeholder="Please enter free port (for example 8099). (Min. number 0, Max. number 65535)" /><br/>
+                            </td>
+                        </tr>
+                        <tr id="oxdWeb" style="display:none;">
+                            <td style="width: 300px;"><b><font color="#FF0000">*</font>oxd https extension Host:</b></td>
+                            <td>
+                                <input class="oxdToHttpUrl oxd_openid_table_textbox form-control" required type="text" name="oxd_to_http_host" value="<?php if($gluu_oxd_config['oxd_to_http_host'] && get_option("oxd_request_pattern") == 2){ echo $gluu_oxd_config['oxd_to_http_host'];} ?>" placeholder="Please enter oxd https extension Host" />
                             </td>
                         </tr>
                     </table>
@@ -401,7 +588,7 @@
                 <hr>
                 <div style="margin-left: 20px">
                     <h3 style="padding-left: 10px;padding-bottom: 20px; border-bottom: 2px solid black; width: 60% ">Enrollment and Access Management
-                        <a data-toggle="tooltip" class="tooltipLink" data-original-title="Register new users when they login at an external identity provider. If you disable automatic registration, new users will need to be manually created">
+                        <a data-toggle="tooltip" class="tooltipLink" data-original-title="If you are using localhost to connect your WordPress site to your oxd server, choose oxd Server. If you are connecting via https, choose oxd oxd https extension.">
                             <span class="glyphicon glyphicon-info-sign"></span>
                         </a></h3>
                     <div style="padding-left: 10px;">
@@ -458,14 +645,15 @@
                         <tr>
                             <td  style="width: 300px;"><label for="default_role"><b>New User Default Role:</b></label></td>
                             <td>
-                                <select class="form-control" name="default_role" id="default_role"><?php wp_dropdown_roles( get_option('default_role') ); ?></select>
+                                <select class="form-control" style="width:45% !important" name="default_role" id="default_role"><?php wp_dropdown_roles( get_option('default_role') ); ?></select>
                             </td>
                         </tr>
+                        <tr><th style="border-bottom:2px solid #000;"></th></tr>
                         <tr>
-                            <td>
-                                <input type="submit" name="submit" value="Register" style="float: left; margin-right: 15px " class="button button-primary button-large" />
+                            <td class="text-center" colspan="3">
+                                <input type="submit" name="submit" value="Register" style="margin-right: 20px " class="button button-primary button-large" />
                                 <?php if(get_option('gluu_op_host')){?>
-                                    <input type="button" onclick="delete_register('cancel','<?php echo $custom_nonce;?>')" name="cancel" value="Cancel" style="float: left; " class="button button-primary button-large" />
+                                    <input type="button" onclick="delete_register('cancel','<?php echo $custom_nonce;?>')" name="cancel" value="Cancel" class="button button-primary button-large" />
                                 <?php }?>
                             </td>
                             <td>
@@ -481,6 +669,8 @@
         update_option ( 'oxd_openid_new_registration', 'true' );
         global $current_user;
         $gluu_oxd_config 	= get_option('gluu_oxd_config');
+        $client_id = get_option('client_id');
+        $client_secret = get_option('client_secret');
         get_currentuserinfo();
         ?>
         <form name="f" method="post" action="" id="register-form">
@@ -494,10 +684,17 @@
                         </div>
                     </legend>
                     <div>
-                        <h3 style="margin-left: 35px;padding-left: 10px;padding-bottom: 20px; border-bottom: 2px solid black; width: 60% "> Server Settings</h3>
+                        <br/>
+                        <div style="padding-left: 30px;">
+                            <p>The oxd OpenID Connect single sign-on (SSO) plugin for WordPress enables you to use a standard OpenID Connect Provider (OP), like Google or the Gluu Server, to authenticate and enroll users for your WordPress site.</p>
+                            <p>This plugin relies on the oxd mediator service. For oxd deployment instructions and license information, please visit the <a href="https://oxd.gluu.org/">oxd website</a>.</p>
+                            <p>In addition, if you want to host your own OP you can deploy the <a href="https://www.gluu.org/">free open source Gluu Server</a>.</p>
+                        </div>
+                        <hr>
+                        <h3 style="margin-left: 35px;padding-left: 10px;padding-bottom: 20px; border-bottom: 2px solid black; width: 60% "> Server Settings<p><i><p>The below values are required to configure your WordPress site with your oxd server and OP. Upon successful registration of your WordPress site in the OP, a unique identifier will be issued and displayed below in a new field called: oxd ID.</p></i></p></h3>
                         <table style="margin-left: 30px" class="form-table">
                             <tr>
-                                <td  style="width: 300px;"><b>URI of the OpenID Provider:</b></td>
+                                <td  style="width: 300px;"><b>URI of the OpenID Connect Provider:</b></td>
                                 <td><input class="oxd_openid_table_textbox form-control" disabled type="url" name="gluu_server_url" placeholder="Enter URI of the OpenID Provider" value="<?php if(get_option('gluu_op_host')){ echo get_option('gluu_op_host');} ?>" /></td>
                             </tr>
                             <tr>
@@ -505,7 +702,7 @@
                                 <td><input class="oxd_openid_table_textbox form-control" disabled type="url" name="gluu_custom_url"  placeholder="Enter custom URI after logout" value="<?php if(get_option('gluu_custom_url')){ echo get_option('gluu_custom_url');} ?>" /></td>
                             </tr>
                             <tr>
-                                <td style="width: 300px;"><label for="wp_custom_login_url"><b>Site Login URI: <?php echo site_url(); ?>/</b></label></td>
+                                <td style="width: 300px;"><label for="wp_custom_login_url"><b>Site Login URI: <?php // echo site_url(); ?></b></label></td>
                                 <td>
                                     <input class="oxd_openid_table_textbox form-control" disabled type="text" name="wp_custom_login_url"  placeholder="Enter your site login URI" value="<?php if(get_option('wp_custom_login_url')){ echo get_option('wp_custom_login_url');} ?>" /></td>
                             </tr>
@@ -521,12 +718,53 @@
                                     <td><input class="form-control oxd_openid_table_textbox" disabled type="text" name="gluu_client_secret" required placeholder="Enter OpenID Provider client secret" value="<?php if($gluu_oxd_config['gluu_client_secret']){ echo $gluu_oxd_config['gluu_client_secret'];} ?>" /></td>
                                 </tr>
                                 <?php
+                            } else if (!empty($client_id) and !empty($client_secret)){
+                            ?>
+                                <tr>
+                                    <td><b>Client ID:</b></td>
+                                    <td><input class="form-control oxd_openid_table_textbox" disabled type="text" name="gluu_client_id"  placeholder="Enter OpenID Provider client ID" value="<?php if($client_id){ echo $client_id;} ?>" /></td>
+                                </tr>
+                                <tr>
+                                    <td><b>Client Secret:</b></td>
+                                    <td><input class="form-control oxd_openid_table_textbox" disabled type="text" name="gluu_client_secret" required placeholder="Enter OpenID Provider client secret" value="<?php if($client_secret){ echo $client_secret;} ?>" /></td>
+                                </tr>
+                            <?php    
                             }
                             ?>
-                            <tr>
-                                <td  style="width: 300px;"><b>oxd port:</b></td>
+                                <tr>
+                                    <td  style="width: 310px;">
+                                        <b>
+                                            <font color="#FF0000">*</font>Select oxd Server / oxd https extension 
+                                            <a data-toggle="tooltip" class="tooltipLink" data-original-title="If you are using localhost to connect your WordPress site to your oxd server, choose oxd Server. If you are connecting via https, choose oxd oxd https extension.">
+                                                <span class="glyphicon glyphicon-info-sign"></span>
+                                            </a>
+                                        </b>
+                                    </td>
                                 <td>
-                                    <input class="oxd_openid_table_textbox form-control" disabled required type="number" name="oxd_host_port" value="<?php if($gluu_oxd_config['oxd_host_port']){ echo $gluu_oxd_config['oxd_host_port'];}else{ echo 8099;} ?>" placeholder="Please enter free port (for example 8099). (Min. number 0, Max. number 65535)" />
+                                    <div class="row">
+                                        <div class="col-md-12">    
+                                            <div class="radio">
+                                                <label><input type="radio" style="margin-top:1px" name="oxd_request_pattern" disabled value="1">oxd Server</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <div class="radio">
+                                                <label><input type="radio" style="margin-top:1px" name="oxd_request_pattern" disabled value="2">oxd https extension</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr id="oxdSocket" style="display:none;">
+                                <td  style="width: 300px;"><b><font color="#FF0000">*</font>oxd Port:</b></td>
+                                <td>
+                                    <input class="oxd_openid_table_textbox form-control" required type="number" name="oxd_host_port" disabled value="<?php if($gluu_oxd_config['oxd_host_port']){ echo $gluu_oxd_config['oxd_host_port'];}else{ echo 8099;} ?>" placeholder="Please enter free port (for example 8099). (Min. number 0, Max. number 65535)" /><br/>
+                                </td>
+                            </tr>
+                            <tr id="oxdWeb" style="display:none;">
+                                <td style="width: 300px;"><b><font color="#FF0000">*</font>oxd https extension Host:</b></td>
+                                <td>
+                                    <input class="oxdToHttpUrl oxd_openid_table_textbox form-control" required type="text" name="oxd_to_http_host" disabled value="<?php if(get_option('oxd_to_http_host') && get_option("oxd_request_pattern") == 2){ echo get_option('oxd_to_http_host');} ?>" placeholder="Please enter oxd https extension Host" />
                                 </td>
                             </tr>
                             <tr>
@@ -598,13 +836,15 @@
                             <tr>
                                 <td  style="width: 300px;"><label for="default_role"><b>New User Default Role:</b></label></td>
                                 <td>
-                                    <select class="form-control" disabled name="default_role" id="default_role"><?php wp_dropdown_roles( get_option('default_role') ); ?></select>
+                                    <select class="form-control" style="width:45% !important" disabled name="default_role" id="default_role"><?php wp_dropdown_roles( get_option('default_role') ); ?></select>
                                 </td>
                             </tr>
+                            <tr style="height: 10px !important;"><td colspan="3"></td></tr>
+                            <tr><th style="border-bottom:2px solid #000;"></th></tr>
                             <tr>
-                                <td>
-                                    <a class="button button-primary button-large" style="float: left" href="<?php echo add_query_arg( array('tab' => 'register_edit'), $_SERVER['REQUEST_URI'] ); ?>">Edit</a>
-                                    <input type="submit" onclick="return confirm('Are you sure that you want to remove this OpenID Connect provider? Users will no longer be able to authenticate against this OP.')" name="submit" style="float: left; margin-left: 20px" value="Delete" <?php if(!gluu_is_oxd_registered()) echo 'disabled'?> class="button button-primary button-large" />
+                                <td class="text-center" colspan="3">
+                                    <a class="button button-primary button-large" style="margin-right: 20px " href="<?php echo add_query_arg( array('tab' => 'register_edit'), $_SERVER['REQUEST_URI'] ); ?>">Edit</a>
+                                    <input type="submit" onclick="return confirm('Are you sure that you want to remove this OpenID Connect provider? Users will no longer be able to authenticate against this OP.')" name="submit" margin-left: 20px" value="Delete" <?php if(!gluu_is_oxd_registered()) echo 'disabled'?> class="button button-primary button-large" />
                                 </td>
                                 <td></td>
                             </tr>
@@ -651,10 +891,17 @@
                         </div>
                     </legend>
                     <div>
-                        <h3 style="margin-left: 30px;padding-left: 10px;padding-bottom: 20px; border-bottom: 2px solid black; width: 60% ">Server Settings</h3>
+                        <br/>
+                        <div style="padding-left: 30px;">
+                    <p>The oxd OpenID Connect single sign-on (SSO) plugin for WordPress enables you to use a standard OpenID Connect Provider (OP), like Google or the Gluu Server, to authenticate and enroll users for your WordPress site.</p>
+                    <p>This plugin relies on the oxd mediator service. For oxd deployment instructions and license information, please visit the <a href="https://oxd.gluu.org/">oxd website</a>.</p>
+                    <p>In addition, if you want to host your own OP you can deploy the <a href="https://www.gluu.org/">free open source Gluu Server</a>.</p>
+                </div>
+                        <hr>
+                        <h3 style="margin-left: 30px;padding-left: 10px;padding-bottom: 20px; border-bottom: 2px solid black; width: 60% ">Server Settings<p><i><p>The below values are required to configure your WordPress site with your oxd server and OP. Upon successful registration of your WordPress site in the OP, a unique identifier will be issued and displayed below in a new field called: oxd ID.</p></i></p></h3>
                         <table style="margin-left: 35px;" class="form-table">
                             <tr>
-                                <td  style="width: 300px;"><b>URI of the OpenID Provider:</b></td>
+                                <td  style="width: 300px;"><b>URI of the OpenID Connect Provider:</b></td>
                                 <td><input class="oxd_openid_table_textbox form-control" disabled type="url" name="gluu_server_url"  placeholder="Enter URI of the OpenID Provider" value="<?php if(get_option('gluu_op_host')){ echo get_option('gluu_op_host');} ?>" /></td>
                             </tr>
                             <tr>
@@ -662,7 +909,7 @@
                                 <td><input class="oxd_openid_table_textbox form-control"  type="url" name="gluu_custom_url"  placeholder="Enter custom URI after logout" value="<?php if(get_option('gluu_custom_url')){ echo get_option('gluu_custom_url');} ?>" /></td>
                             </tr>
                             <tr>
-                                <td style="width: 300px;"><label for="wp_custom_login_url"><b>Site Login URI: <?php echo site_url(); ?>/</b></label></td>
+                                <td style="width: 300px;"><label for="wp_custom_login_url"><b>Site Login URI: <?php // echo site_url(); ?></b></label></td>
                                 <td>
                                     <input class="oxd_openid_table_textbox form-control"  type="text" name="wp_custom_login_url"  placeholder="Enter your site login URI" value="<?php if(get_option('wp_custom_login_url')){ echo get_option('wp_custom_login_url');} ?>" /></td>
                             </tr>
@@ -682,10 +929,39 @@
                             ?>
     
                             <tr>
-                                <td style="width: 300px;"><b>oxd port:</b></td>
+                                <td  style="width: 310px;">
+                                    <b>
+                                        <font color="#FF0000">*</font>Select oxd Server / oxd https extension 
+                                        <a data-toggle="tooltip" class="tooltipLink" data-original-title="If you are using localhost to connect your WordPress site to your oxd server, choose oxd Server. If you are connecting via https, choose oxd https extension.">
+                                            <span class="glyphicon glyphicon-info-sign"></span>
+                                        </a>
+                                    </b>
+                                </td>
                                 <td>
-                                    <br/>
-                                    <input class="oxd_openid_table_textbox form-control"  required type="number" name="oxd_host_port" value="<?php if($gluu_oxd_config['oxd_host_port']){ echo $gluu_oxd_config['oxd_host_port'];}else{ echo 8099;} ?>" placeholder="Please enter free port (for example 8099). (Min. number 0, Max. number 65535)" />
+                                    <div class="row">
+                                        <div class="col-md-12">    
+                                            <div class="radio">
+                                                <label><input type="radio" style="margin-top:1px" name="oxd_request_pattern" value="1">oxd Server</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-12">
+                                            <div class="radio">
+                                                <label><input type="radio" style="margin-top:1px" name="oxd_request_pattern" value="2">oxd https extension</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr id="oxdSocket" style="display:none;">
+                                <td  style="width: 300px;"><b><font color="#FF0000">*</font>oxd Port:</b></td>
+                                <td>
+                                    <input class="oxd_openid_table_textbox form-control" required type="number" name="oxd_host_port" value="<?php if($gluu_oxd_config['oxd_host_port']){ echo $gluu_oxd_config['oxd_host_port'];}else{ echo 8099;} ?>" placeholder="Please enter free port (for example 8099). (Min. number 0, Max. number 65535)" /><br/>
+                                </td>
+                            </tr>
+                            <tr id="oxdWeb" style="display:none;">
+                                <td style="width: 300px;"><b><font color="#FF0000">*</font>oxd https extension Host:</b></td>
+                                <td>
+                                    <input class="oxdToHttpUrl oxd_openid_table_textbox form-control" required type="text" name="oxd_to_http_host" value="<?php if(get_option('oxd_to_http_host') && get_option("oxd_request_pattern") == 2){ echo get_option('oxd_to_http_host');} ?>" placeholder="Please enter oxd-TO-HTTP Host" />
                                 </td>
                             </tr>
                             <tr>
@@ -768,12 +1044,13 @@
                             <tr>
                                 <td style="width: 300px;"><label for="default_role"><b>New User Default Role:</b></label></td>
                                 <td>
-                                    <select  class="form-control" name="default_role" id="default_role"><?php wp_dropdown_roles( get_option('default_role') ); ?></select>
+                                    <select  class="form-control" style="width:45% !important" name="default_role" id="default_role"><?php wp_dropdown_roles( get_option('default_role') ); ?></select>
                                 </td>
                             </tr>
+                            <tr><th style="border-bottom:2px solid #000;"></th></tr>
                             <tr>
-                                <td>
-                                    <input type="submit" name="submit" value="Save" style="float: left; margin-right: 20px" class="button button-primary button-large" />
+                                <td class="text-center" colspan="3">
+                                    <input type="submit" name="submit" value="Save" style="margin-right: 20px" class="button button-primary button-large" />
                                     <a class="button button-primary button-large" onclick="edit_cancel_function()" id="edit_cancel" href="<?php echo add_query_arg( array('tab' => 'register'), $_SERVER['REQUEST_URI'] ); ?>">Cancel</a>
                                 </td>
                                 <td></td>
@@ -859,12 +1136,12 @@
                         <tr>
                             <td style="width: 300px;"> <label for="default_role"><b>New User Default Role:</b></label></td>
                             <td>
-                                <select  class="form-control" name="default_role" id="default_role"><?php wp_dropdown_roles( get_option('default_role') ); ?></select>
+                                <select  class="form-control" style="width:45% !important" name="default_role" id="default_role"><?php wp_dropdown_roles( get_option('default_role') ); ?></select>
                                 <br/><br/>
                             </td>
                         </tr>
                         <tr>
-                            <td style="width: 300px;"><b>URI of the OpenID Provider:</b></td>
+                            <td style="width: 300px;"><b>URI of the OpenID Connect Provider:</b></td>
                             <td><input class="oxd_openid_table_textbox form-control" disabled type="url" name="gluu_server_url"  placeholder="Enter URI of the OpenID Provider" value="<?php if(get_option('gluu_op_host')){ echo get_option('gluu_op_host');} ?>" /></td>
                         </tr>
                         <tr>
@@ -872,7 +1149,7 @@
                             <td><input class="oxd_openid_table_textbox form-control"  type="url" name="gluu_custom_url"  placeholder="Enter custom URI after logout" value="<?php if(get_option('gluu_custom_url')){ echo get_option('gluu_custom_url');} ?>" /></td>
                         </tr>
                         <tr>
-                            <td><label for="wp_custom_login_url"><b>Site Login URI: <?php echo site_url(); ?>/</b></label></td>
+                            <td><label for="wp_custom_login_url"><b>Site Login URI: <?php // echo site_url(); ?></b></label></td>
                             <td>
                                 <input class="oxd_openid_table_textbox form-control"  type="text" name="wp_custom_login_url"  placeholder="Enter your site login URI" value="<?php if(get_option('wp_custom_login_url')){ echo get_option('wp_custom_login_url');} ?>" /></td>
                         </tr>
@@ -885,10 +1162,39 @@
                             <td><input class="form-control oxd_openid_table_textbox"  type="text" name="gluu_client_secret" placeholder="Enter OpenID Provider client secret" value="<?php if($gluu_oxd_config['gluu_client_secret']){ echo $gluu_oxd_config['gluu_client_secret'];} ?>" /></td>
                         </tr>
                         <tr>
-                            <td style="width: 300px;"><b>oxd port:</b></td>
+                            <td  style="width: 310px;">
+                                <b>
+                                    <font color="#FF0000">*</font>Select oxd Server / oxd https extension 
+                                    <a data-toggle="tooltip" class="tooltipLink" data-original-title="If you are using localhost to connect your WordPress site to your oxd server, choose oxd Server. If you are connecting via https, choose oxd https extension.">
+                                        <span class="glyphicon glyphicon-info-sign"></span>
+                                    </a>
+                                </b>
+                            </td>
                             <td>
-                                <br/>
-                                <input class="form-control oxd_openid_table_textbox"  required type="number" name="oxd_host_port" value="<?php if($gluu_oxd_config['oxd_host_port']){ echo $gluu_oxd_config['oxd_host_port'];}else{ echo 8099;} ?>" placeholder="Please enter free port (for example 8099). (Min. number 0, Max. number 65535)" />
+                                <div class="row">
+                                    <div class="col-md-12">    
+                                        <div class="radio">
+                                            <label><input type="radio" style="margin-top:1px" name="oxd_request_pattern" value="1">oxd Server</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <div class="radio">
+                                            <label><input type="radio" style="margin-top:1px" name="oxd_request_pattern" value="2">oxd https extension</label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr id="oxdSocket" style="display:none;">
+                            <td  style="width: 300px;"><b><font color="#FF0000">*</font>oxd Port:</b></td>
+                            <td>
+                                <input class="oxd_openid_table_textbox form-control" required type="number" name="oxd_host_port" value="<?php if($gluu_oxd_config['oxd_host_port']){ echo $gluu_oxd_config['oxd_host_port'];}else{ echo 8099;} ?>" placeholder="Please enter free port (for example 8099). (Min. number 0, Max. number 65535)" /><br/>
+                            </td>
+                        </tr>
+                        <tr id="oxdWeb" style="display:none;">
+                            <td style="width: 300px;"><b><font color="#FF0000">*</font>oxd https extension Host:</b></td>
+                            <td>
+                                <input class="oxdToHttpUrl oxd_openid_table_textbox form-control" required type="text" name="oxd_to_http_host" value="<?php if(get_option('oxd_to_http_host')){ echo get_option('oxd_to_http_host');} ?>" placeholder="Please enter oxd https extension Host" />
                             </td>
                         </tr>
                         <tr>
@@ -897,8 +1203,9 @@
                                 <input class="form-control oxd_openid_table_textbox" <?php echo 'disabled'?> type="text" name="oxd_id" value="<?php echo get_option('gluu_oxd_id'); ?>" /><br/>
                             </td>
                         </tr>
-                        <tr>
-                            <td style="width: 300px;"> <input type="submit" style="float: right" name="submit" value="Save" class="button button-primary button-large" />
+                        <tr><th style="border-bottom:2px solid #000;"></th></tr>
+                        <tr class="text-center" colspan="3">
+                            <td style="width: 300px;"> <input type="submit" name="submit" style="margin-right: 20px " value="Save" class="button button-primary button-large" />
                             </td>
                             <td><a class="button button-primary button-large"  href="<?php echo add_query_arg( array('tab' => 'register'), $_SERVER['REQUEST_URI'] ); ?>">Cancel</a></td>
                         </tr>
@@ -1048,8 +1355,9 @@
                                     <?php } ?>
                                 </td>
                             </tr>
+                            <tr><th style="border-bottom:2px solid #000;"></th></tr>
                             <tr>
-                                <th >
+                                <th colspan="3" style="text-align:center !important">
                                     <input type="submit" class="button button-primary button-large" <?php if(!gluu_is_oxd_registered()) echo 'disabled'?> value="Save Authentication Settings" name="set_oxd_config" />
                                 </th>
                                 <td>
@@ -1057,7 +1365,7 @@
                             </tr>
                             </tbody>
                         </table>
-                        <h3 style="margin-left: 30px;padding-top: 20px; border-top: 2px solid black; width: 60%"></h3>
+                        
                     </fieldset>
                 </form>
             </div>

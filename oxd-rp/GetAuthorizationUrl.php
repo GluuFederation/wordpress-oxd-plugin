@@ -11,7 +11,7 @@
 	 *
 	 * @package	  Oxd Library by Gluu
 	 * @category  Library, Api
-	 * @version   3.0.1
+	 * @version   3.1.1
 	 *
 	 * @author    Gluu Inc.          : <https://gluu.org>
 	 * @link      Oxd site           : <https://oxd.gluu.org>
@@ -72,6 +72,19 @@ class GetAuthorizationUrl extends ClientOXDRP
     /**start parameter for response!**/
     private $response_authorization_url;
     /**end response parameter**/
+    
+    /**
+    * @var string $request_access_token     access token for each request
+    */
+    private $request_access_token;
+
+    function getRequest_access_token() {
+        return $this->request_access_token;
+    }
+
+    function setRequest_access_token($request_access_token) {
+        $this->request_access_token = $request_access_token;
+    }
 
     public function __construct()
     {
@@ -271,7 +284,8 @@ class GetAuthorizationUrl extends ClientOXDRP
             "acr_values" => $this->getRequestAcrValues(),
             "prompt" => $this->getRequestPrompt(),
             "scope" => $this->getRequestScope(),
-            "hd" => $this->getRequestHD()
+            "hd" => $this->getRequestHD(),
+            "protection_access_token" => $this->getRequest_access_token()
         );
     }
 

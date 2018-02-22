@@ -11,7 +11,7 @@
 	 *
 	 * @package	  Oxd Library by Gluu
 	 * @category  Library, Api
-	 * @version   3.0.1
+	 * @version   3.1.1
 	 *
 	 * @author    Gluu Inc.          : <https://gluu.org>
 	 * @link      Oxd site           : <https://oxd.gluu.org>
@@ -94,12 +94,49 @@
 
     }
     /**
+     * request to oxd http
+     **/
+    public function oxd_http_request($url,$data){
+        $headers = ["Content-type: application/json"];
+        $data = json_decode($data,true);
+        if(array_key_exists('protection_access_token',$data)){
+            $headers[] = "Authorization: Bearer ".$data['protection_access_token'];
+            unset($data['protection_access_token']);
+        }
+        $data = json_encode($data,true);
+        $curl = curl_init($url);
+        curl_setopt($curl, CURLOPT_HEADER, false);
+        //Remove these lines while using real https instead of self signed
+        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+        //remove above 2 lines
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_HTTPHEADER,
+                        $headers);
+        curl_setopt($curl, CURLOPT_POST, true);
+        curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+
+        $json_response = curl_exec($curl);
+
+        $status = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+
+        if ( $status != 201 && $status != 200) {
+            die("Error: call to URL $url failed with status $status, response $json_response, curl_error " . curl_error($curl) . ", curl_errno " . curl_errno($curl));
+        }
+
+
+        curl_close($curl);
+        $result = $json_response;
+        return $result;
+
+    }
+    /**
      * send function sends the command to the oxD server.
      *
      * Args:
      * command (dict) - Dict representation of the JSON command string
      **/
-    public function request()
+    public function request($url=null)
     {
         $this->setParams();
 
@@ -111,11 +148,18 @@
         }else{
             $lenght = $lenght <= 999 ? "0" . $lenght : $lenght;
         }
-
-        $this->response_json =  $this->oxd_socket_request(utf8_encode($lenght . $jsondata));
-
-        if($this->response_json !='socket_error'){
+        if($url)
+        {
+            $jsonHttpData = json_encode($this->getData()["params"]);
+            $this->response_json = $this->oxd_http_request($url,$jsonHttpData);
+        }
+        else
+        {
+            $this->response_json =  $this->oxd_socket_request(utf8_encode($lenght . $jsondata));
             $this->response_json = str_replace(substr($this->response_json, 0, 4), "", $this->response_json);
+        }
+        if($this->response_json !='socket_error'){
+//            $this->response_json = str_replace(substr($this->response_json, 0, 4), "", $this->response_json);
             if ($this->response_json) {
                 $object = json_decode($this->response_json);
                 if ($object->status == 'error') {
