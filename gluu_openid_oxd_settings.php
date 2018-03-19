@@ -311,6 +311,7 @@
 							$config_option = get_option('gluu_oxd_config');
 							$config_option['oxd_host_port'] = intval($_POST['oxd_host_port']);
 							$oxd_host_port = intval($_POST['oxd_host_port']);
+							$config_option['oxd_request_pattern'] = $_POST["oxd_request_pattern"];
 							update_option('gluu_oxd_config', $config_option);
 							if($_POST['gluu_users_can_register']==1) {
 								update_option('gluu_users_can_register', 1);
@@ -324,7 +325,7 @@
 									}
 									update_option('gluu_new_role', $role_array);
 									$config = get_option('gluu_oxd_config');
-									array_push($config['scope'],'permission');
+									$config['scope'] = 'permission';
 									update_option('gluu_oxd_config', $config);
 								}else{
 									update_option('gluu_new_role', array());
@@ -402,6 +403,7 @@
 												"application_type" => "web",
 												"response_types" => ["code"],
 												"grant_types" => ["authorization_code"],
+                                                                                                "oxd_request_pattern" => $_POST["oxd_request_pattern"],
 												"acr_values" => []
 											);
 											update_option('gluu_oxd_config', $config_option);
@@ -488,6 +490,7 @@
 											"scope" => ["openid", "profile","email"],
 											"response_types" => ["code"],
 											"grant_types" => ["authorization_code"],
+                                                                                        "oxd_request_pattern" => $_POST["oxd_request_pattern"],
 											"acr_values" => []
 										);
 										
@@ -581,6 +584,7 @@
 												"application_type" => "web",
 												"response_types" => ["code"],
 												"grant_types" => ["authorization_code"],
+                                                                                                "oxd_request_pattern" => $_POST["oxd_request_pattern"],
 												"acr_values" => []
 											);
                                                                                         
@@ -616,6 +620,7 @@
 									"response_types" => ["code"],
 									"scope" => ["openid", "profile","email"],
 									"grant_types" => ["authorization_code"],
+                                                                        "oxd_request_pattern" => $_POST["oxd_request_pattern"],
 									"acr_values" => []
 								);
 								update_option('gluu_oxd_config', $config_option);
@@ -689,6 +694,7 @@
 										"application_type" => "web",
 										"response_types" => ["code"],
 										"grant_types" => ["authorization_code"],
+                                                                                "oxd_request_pattern" => $_POST["oxd_request_pattern"],
 										"acr_values" => []
 									);
 									update_option('gluu_oxd_config', $config_option);
@@ -822,6 +828,7 @@
 									"application_type" => "web",
 									"response_types" => ["code"],
 									"grant_types" => ["authorization_code"],
+                                                                        "oxd_request_pattern" => $_POST["oxd_request_pattern"],
 									"acr_values" => []
 								);
 								update_option('gluu_oxd_config', $config_option);
@@ -864,6 +871,7 @@
 												"application_type" => "web",
 												"response_types" => ["code"],
 												"grant_types" => ["authorization_code"],
+                                                                                                "oxd_request_pattern" => $_POST["oxd_request_pattern"],
 												"acr_values" => []
 											);
 											update_option('gluu_oxd_config', $config_option);
@@ -964,6 +972,7 @@
 								"response_types" => ["code"],
 								"scope" => ["openid", "profile","email"],
 								"grant_types" => ["authorization_code"],
+                                                                "oxd_request_pattern" => $_POST["oxd_request_pattern"],
 								"acr_values" => []
 							);
 							update_option('gluu_oxd_config', $config_option);
@@ -997,6 +1006,7 @@
 								"response_types" => ["code"],
 								"scope" => ["openid", "profile","email"],
 								"grant_types" => ["authorization_code"],
+                                                                "oxd_request_pattern" => $_POST["oxd_request_pattern"],
 								"acr_values" => []
 							);
 							update_option('gluu_oxd_config', $config_option);
@@ -1071,6 +1081,7 @@
 									"application_type" => "web",
 									"response_types" => ["code"],
 									"grant_types" => ["authorization_code"],
+                                                                        "oxd_request_pattern" => $_POST["oxd_request_pattern"],
 									"acr_values" => []
 								);
 								update_option('gluu_oxd_config', $config_option);
@@ -1399,6 +1410,9 @@
 	new gluu_OpenID_OXD;
 	function gluu_is_port_working(){
 		$config_option = get_option('gluu_oxd_config');
+                if($config_option['oxd_request_pattern'] == true){
+                    return true;
+                }
 		$connection = @fsockopen('127.0.0.1', $config_option['oxd_host_port']);
 		
 		if (is_resource($connection))
@@ -1568,11 +1582,11 @@
 			$get_tokens_by_code_array = $get_tokens_by_code->getResponseObject()->data->id_token_claims;
 			$_SESSION['session_in_op']= $get_tokens_by_code->getResponseIdTokenClaims()->exp[0];
 			$_SESSION['user_oxd_id_token']= $get_tokens_by_code->getResponseIdToken();
-                        if(get_option('has_registration_endpoints') == 1){
-                            $_SESSION['user_oxd_access_token']= getAccessTokenByRefreshToken($get_tokens_by_code->getResponseRefreshToken());
-                        }else{
-                            $_SESSION['user_oxd_access_token']= $get_tokens_by_code->getResponseAccessToken();
-                        }
+//                        if(get_option('has_registration_endpoints') == 1){
+//                            $_SESSION['user_oxd_access_token']= getAccessTokenByRefreshToken($get_tokens_by_code->getResponseRefreshToken());
+//                        }else{
+                        $_SESSION['user_oxd_access_token']= $get_tokens_by_code->getResponseAccessToken();
+//                        }
                         $_SESSION['session_states']= $_REQUEST['session_state'];
 			$_SESSION['states']= $_REQUEST['state'];
 			$get_user_info = new GetUserInfo();

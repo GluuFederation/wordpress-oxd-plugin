@@ -425,7 +425,7 @@
                         <tr id="oxdWeb" style="display:none;">
                             <td style="width: 300px;"><b><font color="#FF0000">*</font>oxd https extension Host:</b></td>
                             <td>
-                                <input class="oxdToHttpUrl oxd_openid_table_textbox form-control" required type="text" name="oxd_to_http_host" value="<?php if(get_option('oxd_to_http_host') && get_option("oxd_request_pattern") == 2){ echo get_option('oxd_to_http_host');} ?>" placeholder="Please enter oxd-TO-HTTP Host" />
+                                <input class="oxdToHttpUrl oxd_openid_table_textbox form-control" required type="text" name="oxd_to_http_host" value="<?php if(get_option('oxd_to_http_host') && get_option("oxd_request_pattern") == 2){ echo get_option('oxd_to_http_host');} ?>" placeholder="Please enter oxd https extension Host" />
                             </td>
                         </tr>
                         
@@ -961,7 +961,7 @@
                             <tr id="oxdWeb" style="display:none;">
                                 <td style="width: 300px;"><b><font color="#FF0000">*</font>oxd https extension Host:</b></td>
                                 <td>
-                                    <input class="oxdToHttpUrl oxd_openid_table_textbox form-control" required type="text" name="oxd_to_http_host" value="<?php if(get_option('oxd_to_http_host') && get_option("oxd_request_pattern") == 2){ echo get_option('oxd_to_http_host');} ?>" placeholder="Please enter oxd-TO-HTTP Host" />
+                                    <input class="oxdToHttpUrl oxd_openid_table_textbox form-control" required type="text" name="oxd_to_http_host" value="<?php if(get_option('oxd_to_http_host') && get_option("oxd_request_pattern") == 2){ echo get_option('oxd_to_http_host');} ?>" placeholder="Please enter oxd https extension Host" />
                                 </td>
                             </tr>
                             <tr>
